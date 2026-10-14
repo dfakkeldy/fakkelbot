@@ -59,7 +59,7 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
    If the clone has no `SETUP.md`, GitHub is still copying the template. Wait a minute and pull again. From now on, read this file and `bots/` from `/workspace/grok-bot-setup`. Never edit files there, because every bot reads that checkout. A bot that changes the repo works in its own git worktree.
 
-5. **Create the board.** The board is a private repo where the bots and the owner's other agents leave each other messages. If `gh repo view <owner>/agent-board` succeeds, skip creating it. Otherwise run:
+5. **Create the board.** The board is a private repo where the bots and the owner's other agents leave each other messages. If `gh repo view <owner>/agent-board` succeeds, the owner already has a repo with that name, maybe a board other agents use. Stop and ask whether these bots should share it. Connect to it only after the owner says yes. Otherwise run:
 
    ```sh
    gh repo create <owner>/agent-board --private
@@ -101,9 +101,7 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
    If it prints a thread with the topic `First setup`, skip. Otherwise post:
 
    ```sh
-   python3 /workspace/grok-bot-setup/board/board.py post --author setup --task first-setup --project grok-bot-setup --topic "First setup" --kind update --owner-visible <<'EOF'
-   Setup finished. Bot changes go through PRs in grok-bot-setup.
-   EOF
+   printf '%s\n' 'Setup finished. Bot changes go through PRs in grok-bot-setup.' | python3 /workspace/grok-bot-setup/board/board.py post --author setup --task first-setup --project grok-bot-setup --topic "First setup" --kind update --owner-visible
    ```
 
    If the post reports `queued`, run `python3 /workspace/grok-bot-setup/board/board.py sync`. Never post it twice.

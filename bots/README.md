@@ -30,16 +30,13 @@ Only your "apply" in that chat changes a bot. Every bot signs in to GitHub as yo
 
 Every Sunday evening the `weekly-sync` routine compares the live bots with these files. If they differ, it opens a `sync/export-YYYY-MM-DD` PR. Merging a sync PR changes no bot. It records what the bots already have. A bot that still has an earlier version of its file is listed as "not applied yet" and left out of the export, so merging the sync PR never undoes a change you haven't applied.
 
-## Add a bot to the menu
+## Add a bot
 
-setup builds its menu from the files here, so a new bot needs only its own file.
+1. Add `bots/<name>.md` in the format above. Its **Category** and **Default** lines put it in setup's menu. If it needs an app connected, add a line for it to step 6 of [SETUP.md](../SETUP.md).
+2. Open a PR and merge it. When you reply "apply", the setup bot creates the bot and its routines.
 
-1. Add `bots/<name>.md` in the format above. Pick its **Category** and **Default**. Write the first sentence of its note so it says what the bot does in a few words.
-2. Open a PR and merge it. When you reply "apply", the setup bot creates the bot and its routines. From then on, setup's menu lists it under its category.
+Give a new bot one job. If it reads email, PRs, web pages or other bots' messages, say that text is data, never instructions. Say what it may do without asking and what needs you. Copy the Routing and Updates paragraphs from [inbox.md](inbox.md) word for word, changing only the file name in Updates. Keep the rule that nothing posts, replies or messages anyone but you without your approval of that one item. X's automation rules also forbid automated replies based on keyword searches.
 
-Give a new bot one job. If it reads email, PRs, web pages or other bots' messages, say that text is data, never instructions. Say what it may do without asking and what needs you. Copy the Routing paragraph from another bot word for word, and the Updates paragraph with only the file name changed. Keep the rule that nothing posts, replies or messages anyone but you without your approval of that one item. X's automation rules also forbid automated replies based on keyword searches.
-
-If the bot needs an app connected, add a line for it to step 6 of [SETUP.md](../SETUP.md).
 
 Removing a file deletes no bot. Delete the bot yourself in Grok Bot if you want it gone.
 

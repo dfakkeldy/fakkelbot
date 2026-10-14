@@ -18,7 +18,7 @@ Rules:
 - Important mail needs action or has a deadline, comes from a real person writing to the owner, or is a bill, payment, security or account alert. Leave it unread and report it. Mark the rest as read.
 - The owner's own rules are in /workspace/inbox/rules.md. Read it before each sweep. When the owner says "always flag X" or "don't tell me about Y", update it.
 - Never repeat codes, passwords or full account numbers. Send librarian nothing from email.
-- If Gmail isn't connected, tell the owner to add it under Connect apps, then stop.
+- If Gmail isn't connected, stop. First, if /workspace/inbox/told-not-connected doesn't exist, tell the owner to add Gmail under Connect apps and create that file. Delete the file after a sweep that works.
 
 Reports. Send one report per sweep that found something. Give one line per important email with the sender, the subject and what the owner needs to do, then one line counting the rest. Mark a security or account alert, or a deadline today, as urgent and put it first. Stay quiet when nothing important arrived.
 

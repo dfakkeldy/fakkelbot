@@ -10,7 +10,9 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
 ## Steps
 
-1. **Welcome the owner and record the answers.** First build the bot menu, as described below. If `/workspace/setup/owner.md` exists, show the owner its answers and the menu, and ask what to change. Otherwise send this welcome, with the menu in place of `<menu>`, and wait for the answers:
+1. **Welcome the owner and record the answers.** First build the bot menu. Read each file in `bots/` except `README.md` and `setup.md`. Start with "I'll set up these unless you drop some:". Then write one line per category for the bots whose **Default** is `yes`, in the order that `bots/README.md` lists the categories. Write each bot as its name with a few words from the first sentence of its note in parentheses, such as `Daily life: liaison (morning brief), inbox (email triage)`. Leave out a category with no bots. If any bot's **Default** is `no`, end with "You can also add:" and list those bots the same way.
+
+   If `/workspace/setup/owner.md` exists, show the owner its answers and the menu, and ask what to change. Otherwise send this welcome, with the menu in place of `<menu>`, and wait for the answers:
 
    ```text
    Hi. I'll set up a small team of Grok bots for you.
@@ -20,8 +22,6 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
    2. Your timezone, such as Europe/Berlin?
    3. Which bots? <menu>
    ```
-
-   To build the menu, read each file in `bots/` except `README.md` and `setup.md`. Start with "I'll set up these unless you drop some:". Then write one line per category for the bots whose **Default** is `yes`, in the order Daily life, Work, Builders, Content. Write each bot as its name with a few words from the first sentence of its note in parentheses, such as `Daily life: liaison (morning brief), inbox (email triage)`. Leave out a category with no bots. If any bot's **Default** is `no`, end with "You can also add:" and list those bots the same way.
 
    The owner can add or drop any bot. Then write the file:
 
@@ -65,7 +65,7 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
    gh repo create <owner>/agent-board --private
    ```
 
-   Then connect the board client. `connect` syncs, and running it again is safe.
+   Then connect the board client with the command from `## Set up` in `board/README.md`. `connect` syncs, and running it again is safe.
 
    ```sh
    python3 /workspace/grok-bot-setup/board/board.py connect --repository <owner>/agent-board
@@ -92,7 +92,7 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
 8. **Create your own routines.** From `bots/setup.md`, create `apply` and `weekly-sync` for yourself, unless they exist. Fill in `<owner>` as in step 7.
 
-9. **Post to the board.** Look for an earlier post:
+9. **Post to the board.** These commands are from `## Post and read` in `board/README.md`. Look for an earlier post:
 
    ```sh
    python3 /workspace/grok-bot-setup/board/board.py threads --project grok-bot-setup --search "First setup" --limit 20

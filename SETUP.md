@@ -77,12 +77,13 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
    - **GitHub events.** Connect the GitHub integration on the account that runs Grok Bot, and give it access to `<owner>/grok-bot-setup`. The `apply` routine's trigger needs it. It's separate from `gh` and from the GitHub plugin.
    - **Gmail, if they chose inbox.** In Grok Bot, open Connect apps and add Gmail. Then turn off the connector's send, reply and forward tools, and keep read, search, mark read and drafts. inbox's rule against sending is only an instruction, and the switch enforces it.
    - **Google Calendar, if they chose scheduler.** In Grok Bot, open Connect apps and add Google Calendar. If it lists its tools, turn off deleting events and answering invites. scheduler's rules against both are only instructions.
-   - **Repos, if they chose pr-watch or librarian.** pr-watch always watches `<owner>/grok-bot-setup`, so leave that repo out. Ask which other repos pr-watch should watch and librarian should collect merged PRs from, as `owner/repo`. Use one list for both unless the owner wants two. If a list file exists, show it and ask whether to keep it. Write one repo per line, to the file of each chosen bot:
+   - **Repos, if they chose pr-watch, librarian or editor.** pr-watch always watches `<owner>/grok-bot-setup`, so leave that repo out. Ask which other repos pr-watch should watch, librarian should collect merged PRs from, and editor should find post ideas in, as `owner/repo`. Use one list for all of them unless the owner wants separate lists. If a list file exists, show it and ask whether to keep it. Write one repo per line, to the file of each chosen bot:
 
      ```sh
-     mkdir -p /workspace/pr-watch /workspace/librarian
+     mkdir -p /workspace/pr-watch /workspace/librarian /workspace/editor
      printf '%s\n' 'example-org/example-app' > /workspace/pr-watch/repos.txt
      printf '%s\n' 'example-org/example-app' > /workspace/librarian/repos.txt
+     printf '%s\n' 'example-org/example-app' > /workspace/editor/repos.txt
      ```
 
 7. **Create the bots.** Create liaison first, because the others report to it, then librarian, because others send it facts. Put the owner's username in place of `<owner>` everywhere in a bot's text. For each chosen bot:

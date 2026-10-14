@@ -20,8 +20,14 @@ It then helps you sign in to GitHub and connect your apps. It never asks for a p
 - **researcher** answers your questions with a link and a date for every claim.
 - **pr-watch** reports failed checks and conflicts on your PRs, and `grok-bot-setup` PRs that have waited on you for more than a day.
 - **librarian** keeps your knowledge base up to date, in one PR a day.
-- **scheduler**, if you ask for it, reads your Google Calendar, tells you what you can't miss and suggests when to fit in flexible things.
 - Two private repos. `grok-bot-setup` holds the bot files and the knowledge base. `agent-board` carries messages between your bots and your other agents.
+
+You can also add these:
+
+- **scheduler** reads your Google Calendar, tells you what you can't miss and suggests when to fit in flexible things.
+- **jobscout** finds open jobs, contracts and grants that fit you, and reminds you before their deadlines.
+- **pantry** keeps your shopping list and tells you about real deals on what you buy.
+- **editor** suggests posts about what you shipped and drafts the ones you pick.
 
 ## How it works
 

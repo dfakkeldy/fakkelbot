@@ -1,0 +1,31 @@
+name: Board tests
+
+on:
+  push:
+    paths:
+      - 'board/**'
+      - '.github/workflows/board-tests.yml'
+  pull_request:
+    paths:
+      - 'board/**'
+      - '.github/workflows/board-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v6.1.0
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run board tests
+        working-directory: board
+        run: python -m unittest discover -s tests -v

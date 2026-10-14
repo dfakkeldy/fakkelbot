@@ -1,4 +1,3 @@
-"""Run agent_messages.py with the store that survives a Grok Bot restart."""
 import sys
 
 import agent_messages

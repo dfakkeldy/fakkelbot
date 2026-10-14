@@ -86,6 +86,63 @@ git:author	Jane Example
 - Accented letters in a different Unicode form do not match. List both spellings. Text that is not UTF-8 is read with replacement characters, so accented terms in it may not match.
 - It finds only what you list. It does not remove anything. Removing an old hit means rewriting history.
 
+## bot_chart.py
+
+`bot_chart.py` reads every bot file in `bots/` and writes [the bot chart](../docs/bot-chart.md), `docs/bot-chart.md`. The page shows which bots hand work to which, what wakes each bot, which outside systems each bot uses, and when the scheduled routines run. GitHub draws its Mermaid charts.
+
+### Update the chart
+
+After you change a bot file, run this from the repo root and commit `docs/bot-chart.md` with your change.
+
+```sh
+python3 scripts/bot_chart.py
+```
+
+`--bots <folder>` reads another folder, and `--out <file>` writes another file. The script needs Python 3.9 or newer and nothing else. The same bot files always give the same page, byte for byte. If it can't read a bot file, it names the bot and the routine on stderr, exits with 1 and writes nothing.
+
+The `Bot chart` workflow runs on every push and PR, and never writes to the repo. It fails when the script can't read a bot file. It only warns when `docs/bot-chart.md` doesn't match `bots/`, so a bot change made on GitHub's website isn't blocked. Nothing regenerates the chart for you, because changes reach `main` only through a PR, as [decision 0001](../kb/decisions/0001-every-change-goes-through-a-pr.md) says.
+
+### How it reads a bot file
+
+It reads the format in [bots/README.md](../bots/README.md), and skips `bots/README.md` itself.
+
+- The bot's name is the first `#` heading. A bot whose **Default** is `no` gets a dashed border and "(optional)".
+- Its instructions are the text block under `## Instructions`.
+- Its routines are the `###` sections under `## Routines`. The script reads each one's **Schedule**, **Enabled** and **Trigger** fields above its text block, then the text block. A `group` trigger adds its cron schedules to the routine's schedule and its GitHub events to its triggers.
+
+It stops with an error when:
+
+- a schedule isn't five numeric cron fields, such as `0 9 * * mon` or one with a `CRON_TZ=` prefix
+- a cron sets both the day of the month and the day of the week, or has a step (`/`) outside the minute and hour
+- **Enabled** isn't `true` or `false`, or a routine has no text block
+- a trigger can't be read, or its type isn't `cron`, `github` or `group`
+- a routine field comes before the first `###` heading under `## Routines`, or another `##` heading names routines, such as `## Paused routines`
+- a bot file has no `## Instructions` section, or two files share a bot name
+
+### How it finds the arrows
+
+It reads only each bot's own file, one sentence at a time, in the instructions and every routine's text. Each arrow is labelled `instructions` or with the name of the routine that holds the sentence.
+
+A bot hands off to another bot when a sentence has one of these:
+
+- A hand-off verb right before the bot's name, as in "send scheduler one message" or "tell the owner and liaison". The verbs are send, tell, ask, hand, pass, forward, relay, message and report.
+- A hand-off verb and, later in the sentence, "to" and the bot's name, as in "Send reports for the owner to liaison".
+- "save" and, later in the sentence, "for" and the bot's name, as in "save them for librarian".
+- `SendToAgent` and another bot's name. If the sentence names no other bot, the script uses the bots that the sentence before it names.
+
+"each affected bot", "each changed bot" and "that bot" all point to one node, `each affected bot`. setup and liaison send to whichever bot a change or a board thread touches, so the chart can't name them.
+
+A bot uses an outside system when a sentence matches one of that system's patterns in the `SYSTEMS` table in `bot_chart.py`. The table has GitHub, the knowledge base, the agent board, Gmail and Google Calendar. To chart another app, add a line to the table. A routine's GitHub trigger is a thick arrow from GitHub to its bot.
+
+Two rules keep a mention from counting:
+
+- A bot's name inside a path, repo or file name doesn't count, so `grok-bot-setup`, `bots/inbox.md` and `SETUP.md` don't mention setup or inbox.
+- A name or pattern doesn't count when "never", "not", "no", "don't" or "without" is one of the three words before it in the same clause. A comma, a semicolon, a colon or a parenthesis ends a clause.
+
+### Limits
+
+The rules read words, not meaning. The script misses a hand-off phrased another way, and a name still counts when its "never" is more than three words before it. If an arrow looks wrong, check the bot's sentences against the rules above.
+
 ## Tests
 
 ```sh

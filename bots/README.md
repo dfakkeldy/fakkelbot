@@ -28,7 +28,7 @@ Each file here holds one bot's exact instructions and routines. The setup bot cr
 
 Only your "apply" in that chat changes a bot. Every bot signs in to GitHub as you, so GitHub can't show which bot merged a PR. A PR, a comment or another bot's message never counts as approval.
 
-Every Sunday evening the `weekly-sync` routine compares the live bots with these files. If they differ, it opens a `sync/export-YYYY-MM-DD` PR. Merging a sync PR changes no bot. It records what the bots already have. A bot that still has an earlier version of its file is listed as "not applied yet" and left out of the export, so merging the sync PR never undoes a change you haven't applied.
+Every Sunday evening the `weekly-sync` routine compares the live bots with these files. If they differ, it opens a `sync/export-YYYY-MM-DD` PR and closes any older sync PR that's still open, because the new one replaces it. Merging a sync PR changes no bot. It records what the bots already have. A bot that still has an earlier version of its file is listed as "not applied yet" and left out of the export, so merging the sync PR never undoes a change you haven't applied.
 
 ## Add a bot
 

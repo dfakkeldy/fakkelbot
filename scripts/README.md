@@ -109,6 +109,7 @@ It reads the format in [bots/README.md](../bots/README.md), and skips `bots/READ
 - The bot's name is the first `#` heading. A bot whose **Default** is `no` gets a dashed border and "(optional)".
 - Its instructions are the text block under `## Instructions`.
 - Its routines are the `###` sections under `## Routines`. The script reads each one's **Schedule**, **Enabled** and **Trigger** fields above its text block, then the text block. A `group` trigger adds its cron schedules to the routine's schedule and its GitHub events to its triggers.
+- A bot with no `## Routines` section, or one with no `###` headings, such as a section that only says "None.", has no routines.
 
 It stops with an error when:
 

@@ -32,6 +32,8 @@ Every Sunday evening the `weekly-sync` routine compares the live bots with these
 
 ## Add a bot
 
+The easiest way is to tell the setup bot what you want. It asks a few questions, writes the file the way this section says, and opens the PR for you to merge. To write one yourself:
+
 1. Add `bots/<name>.md` in the format above. Its **Category** and **Default** lines put it in setup's menu. If it needs an app connected, add a line for it to step 6 of [SETUP.md](../SETUP.md).
 2. Open a PR and merge it. When you reply "apply", the setup bot creates the bot and its routines.
 

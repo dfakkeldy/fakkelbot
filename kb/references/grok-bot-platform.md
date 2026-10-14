@@ -20,6 +20,14 @@ Every fact below was checked against its source on 2026-10-14, unless the line g
 - Settings > Computer has Update, which keeps your files, and Reset, which rebuilds the computer from the last saved snapshot and can lose recent changes ([computer and apps](https://docs.x.ai/grok-bot/computer-and-apps)).
 - Work keeps running when you close the app, your laptop or your phone ([overview](https://docs.x.ai/grok-bot)).
 
+## Your own computer
+
+- Bots can also work on the Mac or Windows computer in front of you. That's a separate capability from the cloud computer ([approvals and security](https://docs.x.ai/grok-bot/approvals-security-and-privacy)).
+- Settings > General > Bot > Execution on Local Computer offers Ask every time, Always allow and Never allow. Ask every time is the default. Answering Always allow or Never at the first prompt sets it for every bot ([approvals and security](https://docs.x.ai/grok-bot/approvals-security-and-privacy)).
+- Once the account has registered computers, the choice moves to Settings > Computer > Computers, with one setting for each computer ([approvals and security](https://docs.x.ai/grok-bot/approvals-security-and-privacy)).
+- The docs advise Never allow unless a bot has a specific reason to work on your local files. A team admin can cap the setting. It doesn't stop bots from using the cloud computer ([approvals and security](https://docs.x.ai/grok-bot/approvals-security-and-privacy)).
+- As of 2026-10-14, the docs don't explain how to register a computer ([approvals and security](https://docs.x.ai/grok-bot/approvals-security-and-privacy)).
+
 ## Bots
 
 - A bot's description holds the rules that stay true across tasks. Instructions for one task go in the chat ([bots](https://docs.x.ai/grok-bot/bots)).

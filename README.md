@@ -14,7 +14,7 @@ It then helps you sign in to GitHub and connect your apps. It never asks for a p
 
 ## What you get
 
-- **setup** creates everything below, then applies your changes.
+- **setup** creates everything below, then designs new bots with you and applies your changes.
 - **liaison** sends you one morning brief built from the other bots' reports.
 - **inbox** marks routine Gmail as read and tells you what matters.
 - **researcher** answers your questions with a link and a date for every claim.

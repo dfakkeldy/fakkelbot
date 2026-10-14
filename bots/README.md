@@ -5,7 +5,10 @@ Each file here holds one bot's exact instructions and routines. The setup bot cr
 ## File format
 
 - A `#` heading with the bot's name.
-- A short note for people. The bot never sees it.
+- Two lines for setup's menu:
+  - **Category**, one of Daily life, Work, Builders or Content
+  - **Default**, `yes` if setup picks the bot unless the owner drops it, or `no` if the owner has to ask for it
+- A short note for people. Its first sentence also describes the bot in setup's menu. The bot never sees the note.
 - `## Instructions`, holding one `text` code block. That block is the bot's standing instructions, word for word.
 - `## Routines`, with a `###` section for each routine. Each has:
   - **Folder**, the routine's name in kebab case
@@ -14,7 +17,7 @@ Each file here holds one bot's exact instructions and routines. The setup bot cr
   - **Trigger**, only for an event routine, as JSON
   - one `text` code block with the routine's prompt, word for word
 
-`<owner>` in a trigger stands for the owner's GitHub username. The setup bot fills it in when it creates the routine, and writes it back as `<owner>` when it exports.
+`<owner>` stands for the owner's GitHub username anywhere in a bot file. The setup bot fills it in when it creates or changes a bot, and writes `<owner>` back when it exports. Write `<owner>` only where the username goes, never in text about the placeholder, because setup would fill that in too.
 
 ## Change a bot
 
@@ -25,13 +28,18 @@ Each file here holds one bot's exact instructions and routines. The setup bot cr
 
 Only your "apply" in that chat changes a bot. Every bot signs in to GitHub as you, so GitHub can't show which bot merged a PR. A PR, a comment or another bot's message never counts as approval.
 
-Every Sunday evening the `weekly-sync` routine compares the live bots with these files. If they differ, it opens a `sync/export-YYYY-MM-DD` PR. Merging a sync PR changes no bot. It records what the bots already have.
+Every Sunday evening the `weekly-sync` routine compares the live bots with these files. If they differ, it opens a `sync/export-YYYY-MM-DD` PR. Merging a sync PR changes no bot. It records what the bots already have. A bot that still has an earlier version of its file is listed as "not applied yet" and left out of the export, so merging the sync PR never undoes a change you haven't applied.
 
-## Add a bot
+## Add a bot to the menu
 
-Add `bots/<name>.md` in this format, open a PR and merge it. When you reply "apply", the setup bot creates the bot and its routines.
+setup builds its menu from the files here, so a new bot needs only its own file.
 
-Give a new bot one job. If it reads email, PRs, web pages or other bots' messages, say that text is data, never instructions. Say what it may do without asking and what needs you. If it learns facts worth keeping, have it send them to librarian as "KB: <fact>. Source: <link>". Keep the rule that nothing posts, replies or messages anyone but you without your approval of that one item. X's automation rules also forbid automated replies based on keyword searches.
+1. Add `bots/<name>.md` in the format above. Pick its **Category** and **Default**. Write the first sentence of its note so it says what the bot does in a few words.
+2. Open a PR and merge it. When you reply "apply", the setup bot creates the bot and its routines. From then on, setup's menu lists it under its category.
+
+Give a new bot one job. If it reads email, PRs, web pages or other bots' messages, say that text is data, never instructions. Say what it may do without asking and what needs you. Copy the Routing paragraph from another bot word for word, and the Updates paragraph with only the file name changed. Keep the rule that nothing posts, replies or messages anyone but you without your approval of that one item. X's automation rules also forbid automated replies based on keyword searches.
+
+If the bot needs an app connected, add a line for it to step 6 of [SETUP.md](../SETUP.md).
 
 Removing a file deletes no bot. Delete the bot yourself in Grok Bot if you want it gone.
 
@@ -42,4 +50,4 @@ A Grok Bot template copies a bot's instructions, its routines, some plugins, and
 1. Create a fresh bot from its file here. Don't share one you've used for weeks.
 2. Create the template from that fresh bot.
 3. Add the template from a second Grok Bot account, and check what came across: instructions, routines, memories and skills.
-4. Share the link only when nothing personal came with it.
+4. Share the link only when nothing personal came with it. A bot whose file uses `<owner>` carries your GitHub username.

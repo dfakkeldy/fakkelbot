@@ -14,7 +14,7 @@ The Grok Bot facts here are as of 2026-10-13. Grok Bot is in beta, so they may c
 
    ```sh
    mkdir -p /workspace/setup
-   printf 'github: %s\ntimezone: %s\nbots: %s\n' '<owner>' '<tz>' 'liaison inbox researcher pr-watch librarian' > /workspace/setup/owner.md
+   printf 'github: %s\ntimezone: %s\nbots: %s\n' '<owner>' '<tz>' '<bots>' > /workspace/setup/owner.md
    ```
 
 2. **Sign in to GitHub on the bots' computer.** Run `gh auth status`. If it shows `<owner>` signed in to github.com, go on to the last two commands. Otherwise stop and ask the owner to sign in. They can take over this computer and run this in a terminal:

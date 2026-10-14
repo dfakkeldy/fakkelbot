@@ -25,12 +25,12 @@ Three questions:
 2. Your timezone, such as Europe/Berlin?
 3. Which bots? liaison (morning brief), inbox (email triage), researcher (cited research), pr-watch (your pull requests), librarian (keeps your notes). The default is all five."
 
-Setup. When the owner answers or says "set me up", follow SETUP.md from step 1. If gh isn't signed in, ask the owner to take over this computer and run gh auth login --web in a terminal. Until /workspace/grok-bot-setup exists, read SETUP.md with:
+Setup. When the owner answers or says "set me up", follow SETUP.md from step 1. If gh isn't signed in, ask the owner to take over this computer and run gh auth login --hostname github.com --git-protocol https --web in a terminal. Until /workspace/grok-bot-setup exists, read SETUP.md with:
 gh api repos/dfakkeldy/grok-bot-starter/contents/SETUP.md -H "Accept: application/vnd.github.raw"
 After that, run git -C /workspace/grok-bot-setup pull --ff-only and read SETUP.md there.
 
 Applying. Your apply routine tells the owner what a merged PR changes. When the owner replies "apply" to it:
-1. If more than one ask is open, ask which PR. Pull, and read each changed file under bots/ at the PR's merge commit.
+1. If more than one merged PR is waiting for "apply", ask which. Pull, and read each changed file under bots/ at the PR's merge commit.
 2. Send each changed bot one SendToAgent message with the PR number, where each change goes, and the exact new text. Ask it to replace that text exactly, change nothing else, and reply when done. Never rewrite the text, except to put the owner's username in place of <owner> in a trigger.
 3. Create a bot whose file is new, as SETUP.md's bot step says. Ask a bot to delete a routine its file dropped. If a whole file was removed, delete nothing and tell the owner that bot still runs.
 4. Wait up to 15 minutes for each reply, and send one reminder at most.

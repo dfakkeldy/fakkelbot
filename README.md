@@ -50,6 +50,8 @@ Grok Bot is in beta, so these may change.
 - Grok Bot may pause routines after a long silence from you. A paused routine looks like a quiet day.
 - Bots have no public API. The live bots are the source of truth, and the weekly sync shows drift.
 
+The knowledge base keeps a dated, cited version of these facts in `kb/references/grok-bot-platform.md`.
+
 Made by Dan Fakkeldy (@DFakkeldy on X).
 
 MIT licence. See [LICENSE](LICENSE).

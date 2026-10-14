@@ -27,6 +27,8 @@ It then helps you sign in to GitHub and connect your apps. It never asks for a p
 
 You change a bot by merging a PR that edits its file and replying "apply" to the setup bot, as [bots/README.md](bots/README.md) explains.
 
+The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when each routine runs.
+
 ## What keeps it safe
 
 - Your bots share one computer, its files and its sign-ins, so one bot can't protect you from another.

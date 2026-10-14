@@ -1,0 +1,21 @@
+name: Bot chart
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.1.0
+      - name: Read every bot file
+        run: python3 scripts/bot_chart.py --out "$RUNNER_TEMP/bot-chart.md"
+      - name: Warn if the chart is out of date
+        run: |
+          if ! cmp -s docs/bot-chart.md "$RUNNER_TEMP/bot-chart.md"; then
+            echo "::warning file=docs/bot-chart.md::docs/bot-chart.md doesn't match bots/. Run python3 scripts/bot_chart.py and commit the result."
+          fi

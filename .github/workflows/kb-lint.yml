@@ -1,0 +1,18 @@
+name: KB lint
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.1.0
+      - name: Lint tests
+        run: python3 -m unittest discover -s kb/tools -p 'test_*.py' -v
+      - name: Lint the notes
+        run: python3 kb/tools/kb_lint.py

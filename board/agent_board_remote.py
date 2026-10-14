@@ -535,11 +535,9 @@ def connect(path,repository):
         if path.exists() and _read(path): raise ValueError('Existing local log; connect needs an empty store')
         _atomic(path,b'',replace=False)
         # A read-only log makes a racing local-mode writer fail instead of appending where no reader looks.
-        os.chmod(path,0o400)
         fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
-        try:os.fsync(fd)
+        try:os.fchmod(fd,0o400);os.fsync(fd)
         finally:os.close(fd)
-        _fsync_dir(path.parent)
         board.sync()
         _atomic(marker(path),_bytes({'schema':1,'root':str(board.root)}),replace=False)
     return board

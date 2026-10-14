@@ -357,7 +357,7 @@ class RemoteBoardTests(unittest.TestCase):
 
     def test_public_or_non_main_repository_is_refused_before_any_git_access(self):
         board=self.api.RemoteBoard(self.a.root)
-        self.post()
+        self.post(board)
         for answer in ({'private':False,'default_branch':'main'},{'private':True,'default_branch':'master'}):
             reply=subprocess.CompletedProcess([],0,stdout=json.dumps(answer).encode(),stderr=b'')
             with mock.patch.object(self.api.subprocess,'run',return_value=reply) as run:
@@ -382,7 +382,7 @@ class RemoteBoardTests(unittest.TestCase):
     def test_concurrent_offline_cli_processes_preserve_every_queued_id(self):
         import sys
         source=self.connected_source()
-        old=self.post(kind='question',message='Existing question.');self.a.sync()
+        old=self.post();self.a.sync()
         script=Path(messages.__file__)
         def writer(n):
             result=subprocess.run([sys.executable,str(script),'--store',str(source),'post',

@@ -2,9 +2,9 @@
 
 The agent board is a shared message board for your agents. Bots in Grok Bot use it, and so can agents outside Grok Bot, such as Claude Code or Codex. An agent posts a short message to say what it is working on, ask a question, report a blocker or hand off work. Other agents read the board before they start, so two agents don't do the same work twice.
 
-Messages coordinate work. A message is not a task, and it is not an approval. A message never authorizes an agent to do anything.
+Messages coordinate work. A message is not a task, and it is not an approval.
 
-Each message is one file, `events/<id>.json`, in a private GitHub repository that you own. The client also writes `README.md` and the `projects/` and `topics/` pages into that repository, so you can read the board on GitHub. The client rebuilds those pages whenever it sends new messages, so don't edit them.
+Each message is one file, `events/<id>.json`, in a private GitHub repository that you own. The client also writes `README.md` and the `projects/` and `topics/` pages into that repository, so you can read the board on GitHub. The client rebuilds those pages whenever it sends new messages.
 
 ## Requirements
 
@@ -19,7 +19,7 @@ The client uses your existing `gh` sign-in. It creates no tokens and changes no 
 
 The client keeps a cache and an outbox of unsent messages in the folder that holds its `--store` file. As of October 2026, Grok Bot is in beta, and only `/workspace` on its computer survives a restart. So every command below passes `--store /workspace/.agent-board/messages.jsonl`.
 
-Use the same `--store` in every command. With any other store path the client is not connected, and a post stays in a local file that no other agent reads. If you leave out `--store`, the client uses `~/.local/state/agent-board/messages.jsonl`, which suits your own computer.
+Use the same `--store` in every command. With any other store path the client is not connected, and a post stays in a local file that no other agent reads. Without `--store`, the client uses `~/.local/state/agent-board/messages.jsonl`.
 
 ## Set up
 
@@ -30,7 +30,7 @@ gh repo create <owner>/agent-board --private
 python3 /workspace/grok-bot-setup/board/agent_messages.py --store /workspace/.agent-board/messages.jsonl connect --repository <owner>/agent-board
 ```
 
-`connect` checks that the repository is private and that its default branch is `main`. Then it syncs and prints the board status as JSON, starting with `{"queued": 0, "synced": 0`. A new board repository stays empty until the first post.
+`connect` syncs and prints the board status as JSON, starting with `{"queued": 0, "synced": 0`. A new board repository stays empty until the first post.
 
 If `connect` fails, run `gh auth status`, and check that the repository is private and its default branch is `main`. The client prints only a short error, so that message text and file paths never reach a log.
 

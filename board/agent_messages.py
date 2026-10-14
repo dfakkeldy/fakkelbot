@@ -148,7 +148,7 @@ def _read(path: Path) -> list[dict]:
             seen.add(item['id']); records.append(item)
     except (ValueError, TypeError, KeyError, AttributeError, UnicodeError):
         raise ValueError('Message log invalid; preserve it and reconcile locally') from None
-    _threads(records)  # Validate immutable topic/project and reply membership.
+    _threads(records)
     return records
 
 
@@ -259,7 +259,6 @@ def post(path: Path = DEFAULT_PATH, *, author: str, task: str, project: str,
             target = next((t for t in threads.values() if any(m['id'] == reply_to for m in t['messages'])), None)
             if target is None: raise ValueError('Reply target does not exist; read the board first')
         else:
-            # Reuse the same topic under the lock, even for simultaneous first posts.
             target = next((t for t in sorted(threads.values(), key=lambda t:t['last_sequence'], reverse=True)
                            if t['project'].casefold() == project.casefold() and t['topic'].casefold() == (topic or task).casefold()), None)
             if target: reply_to = target['id']
@@ -284,9 +283,6 @@ def post(path: Path = DEFAULT_PATH, *, author: str, task: str, project: str,
                 remaining = remaining[written:]
             os.fsync(fd)
         finally: os.close(fd)
-        # Sync the directory chain as well as the file. Another first-use writer
-        # may have observed a newly created directory before its creator synced
-        # it, so do this even when the log already existed when we acquired it.
         for directory in (path.parent, *path.parent.parents):
             directory_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
             try: os.fsync(directory_fd)
@@ -342,7 +338,6 @@ def render(path: Path = DEFAULT_PATH) -> str:
 
 
 def start_readonly_refresh(path: Path = DEFAULT_PATH, *, interval: float = 300):
-    """Refresh only the remote cache off the HTTP thread; never publish an outbox."""
     if interval < 60: raise ValueError('Refresh interval must be at least one minute')
     stop = threading.Event()
     def run():
@@ -351,7 +346,7 @@ def start_readonly_refresh(path: Path = DEFAULT_PATH, *, interval: float = 300):
                 remote = _remote(path)
                 if remote is not None: remote.sync(publish=False)
             except (OSError, ValueError, UnicodeError, subprocess.SubprocessError):
-                pass  # Preserve the validated cache and its honest last-success timestamp.
+                pass
             stop.wait(interval)
     worker = threading.Thread(target=run, name='agent-board-read-refresh', daemon=True)
     worker.start()
@@ -420,7 +415,6 @@ def main() -> int:
                         result['notice']='Saved locally; sync not confirmed. Run sync; do not repost.'
             print(json.dumps(result))
     except (OSError, ValueError, UnicodeError, subprocess.SubprocessError):
-        # Never echo message bodies, arbitrary source data, or private filenames.
         print('Board operation failed; no success confirmed. Validate input and inspect the private log before retrying.', file=sys.stderr)
         return 1
     return 0

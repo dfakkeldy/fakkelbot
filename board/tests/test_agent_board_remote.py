@@ -123,7 +123,6 @@ class RemoteBoardTests(unittest.TestCase):
     def test_preexisting_uppercase_and_whitespace_references_render_without_changing_events(self):
         old=self.post(references=['HTTPS://example.test/evidence','  https://example.test/other  '])
         event=self.api._json(next((self.a.root/'outbox').iterdir()))
-        # A previously supported client could already have published this exact event.
         original=self.api._bytes(event)
         self.a.remote._prepare()
         blob=self.a.remote._git('hash-object','-w','--stdin',input=original).stdout.decode().strip()

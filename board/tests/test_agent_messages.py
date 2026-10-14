@@ -52,7 +52,7 @@ class AgentMessageTests(unittest.TestCase):
         self.store = self.store.parent / 'nested' / 'messages.jsonl'
         real_fsync = os.fsync
         expected = [self.store, self.store.parent, *self.store.parent.parents]
-        for _ in range(2):  # Both first use and a writer observing existing state.
+        for _ in range(2):
             synced = []
             def sync(fd):
                 info = os.fstat(fd)

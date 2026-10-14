@@ -1,8 +1,3 @@
-"""Portable private coordination events; GitHub owns synced data, local outbox owns pending data.
-
-Immutable events and derived navigation are pushed; remote code is never executed.
-Neither message claims nor Git commit identities grant task authority or user approval.
-"""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -156,7 +151,6 @@ def _union(*groups):
 
 
 def _markdown(value):
-    """Source strings are quoted data, never Markdown/HTML/link instructions."""
     return ''.join(f'&#{ord(c)};' if c in '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~' else c
                    for c in str(value))
 
@@ -180,7 +174,6 @@ def _check_view_links(views, events):
 
 
 def render_views(events):
-    """Rebuild shallow navigation from an exact event set; no invented summaries."""
     records,_,conflicts=_reduce(events)
     ordered=sorted(events,key=lambda e:(e['sequence'],e['id']))
     revision=hashlib.sha256(_bytes(ordered)).hexdigest()
@@ -289,7 +282,6 @@ class PushConflict(OSError): pass
 
 
 class GitRemote:
-    """One private object store per client; no executable checkout or shared index."""
     def __init__(self, root, url, *, verify):
         self.root=Path(root);self.url=url;self.verify=verify
 
@@ -370,7 +362,6 @@ class GitRemote:
         finally: index.unlink(missing_ok=True)
 
     def validate_views(self,head,*,base=None):
-        """Read-only gate for a fetched data-repo revision, using this reviewed client."""
         head=self._git('rev-parse','--verify','--end-of-options',head+'^{commit}').stdout.decode().strip()
         events=self._events_at(head)
         if base is not None:
@@ -481,7 +472,6 @@ class RemoteBoard:
             return item
 
     def sync(self, *, publish=True):
-        # Serializes one client's network sync without holding up its offline writers.
         with messages._locked(self.root/'sync'):
             previous_failed_head=object()
             for attempt in range(5):
@@ -492,7 +482,6 @@ class RemoteBoard:
                     if any(e['id'] not in remote_ids for e in cache['events']):
                         raise ValueError('Remote events disappeared; preserve and reconcile')
                     combined=_union(cache['events'],remote_events,pending)
-                    # Validate the complete union before acknowledging or publishing anything.
                     missing=[e for e in combined if e['id'] not in remote_ids]
                     if not missing or not publish:
                         _atomic(self.root/'cache.json',_bytes(dict(schema=1,head=head,synced_at=_now(),events=remote_events)))
@@ -527,14 +516,12 @@ def configured(path):
 
 
 def connect(path,repository):
-    """Attach a client with no local history; a nonempty local log is refused, never hidden."""
     root=path.parent/'remote'
     if path.exists() and _read(path): raise ValueError('Existing local log; connect needs an empty store')
     initialize(root,repository);board=RemoteBoard(root)
     with messages._locked(path,create=True):
         if path.exists() and _read(path): raise ValueError('Existing local log; connect needs an empty store')
         _atomic(path,b'',replace=False)
-        # A read-only log makes a racing local-mode writer fail instead of appending where no reader looks.
         fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
         try:os.fchmod(fd,0o400);os.fsync(fd)
         finally:os.close(fd)

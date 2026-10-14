@@ -8,7 +8,7 @@ import re
 import sys
 from datetime import date
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import unquote, urlsplit
 
 FOLDER_TYPES = {
     "decisions": "decision",
@@ -16,18 +16,15 @@ FOLDER_TYPES = {
     "references": "reference",
 }
 REQUIRED_FIELDS = ("type", "title", "description", "updated")
-NOT_NOTES = {"README.md", "AGENTS.md"}
-SKIPPED_DIRS = {"templates", "tools"}
+NOT_NOTES = {"README.md", "AGENTS.md", "templates", "tools"}
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)[^)]*\)")
-SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
 INLINE_CODE_RE = re.compile(r"`[^`]*`")
 
 
 def notes(kb_root):
     for path in sorted(kb_root.rglob("*.md")):
-        relative = path.relative_to(kb_root)
-        if relative.as_posix() not in NOT_NOTES and relative.parts[0] not in SKIPPED_DIRS:
+        if path.relative_to(kb_root).parts[0] not in NOT_NOTES:
             yield path
 
 
@@ -88,9 +85,10 @@ def check_note(note, kb_root):
             problems.append(f'{name}: updated "{updated}" is not a YYYY-MM-DD date')
 
     for target in link_targets(text):
-        if SCHEME_RE.match(target) or target.startswith("#"):
+        url = urlsplit(target)
+        if url.scheme or url.netloc or not url.path:
             continue
-        if not (note.parent / unquote(target.split("#", 1)[0])).exists():
+        if not (note.parent / unquote(url.path)).exists():
             problems.append(f'{name}: broken link "{target}"')
 
     return problems

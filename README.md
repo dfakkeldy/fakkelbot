@@ -16,7 +16,7 @@ It then helps you sign in to GitHub and connect your apps. It never asks for a p
 
 - **setup** creates everything below, then designs new bots with you and applies your changes.
 - **liaison** sends you one morning brief built from the other bots' reports.
-- **inbox** marks routine Gmail as read and tells you what matters.
+- **inbox** marks Gmail as read, labels what needs you and tells you what matters.
 - **researcher** answers your questions with a link and a date for every claim.
 - **pr-watch** reports failed checks and conflicts on your PRs, and `grok-bot-setup` PRs that have waited on you for more than a day.
 - **librarian** keeps your knowledge base up to date, in one PR a day.

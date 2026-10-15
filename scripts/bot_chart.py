@@ -6,11 +6,19 @@ import argparse
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 from typing import Iterable, NamedTuple, Sequence
+from uuid import UUID
 from xml.sax.saxutils import escape
 
-ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = Path(__file__).resolve()
+CONFIG = json.loads(SCRIPT.with_suffix(".json").read_text(encoding="utf-8"))
+ROOT = SCRIPT.parents[len(Path(CONFIG["script"]).parts) - 1]
+OUT = Path(CONFIG["out"])
+TIME_ZONE = CONFIG["time_zone"]
+CREATION_STATUS = CONFIG["creation_status"]
+NOT_CREATED = "(not created yet)"
 
 
 class ChartError(Exception):
@@ -44,6 +52,9 @@ class Bot(NamedTuple):
     optional: bool
     instructions: str
     routines: tuple[Routine, ...]
+    created: bool | None = None
+    observed: str = ""
+    evidence: str = ""
 
 
 HANDOFF = "handoff"
@@ -61,12 +72,14 @@ class Edge(NamedTuple):
 class System(NamedTuple):
     key: str
     label: str
+    group: str
     patterns: tuple[str, ...]
 
 
 INSTRUCTIONS = "instructions"
 FAN_OUT = "each affected bot"
-FAN_OUT_PHRASES = (FAN_OUT, "each changed bot", "that bot")
+FAN_OUT_PHRASES = (FAN_OUT, "each changed bot", "that bot", "the bot that owns it")
+OWNER_WORDS = tuple(CONFIG["owner_words"])
 HANDOFF_VERBS = ("send", "sends", "tell", "tells", "ask", "asks", "hand", "hands", "pass", "passes",
                  "forward", "forwards", "relay", "relays", "message", "report", "reports")
 HANDOFF_STEMS = ("send", "tell", "ask", "hand", "pass", "forward", "relay", "message", "report")
@@ -76,17 +89,14 @@ SENTENCE_BREAK = re.compile(r"(?<=[.!?])\s+")
 CLAUSE_BREAK = re.compile(r"[,;:()]")
 WORD = re.compile(r"[\w'-]+")
 
-SYSTEMS = (
-    System("github", "GitHub", (r"\bgh\b", r"\bGitHub\b(?! username)")),
-    System("kb", "knowledge base", (r"(?i)knowledge[- ]base", r"/kb/", r"\bkb/AGENTS\.md")),
-    System("board", "agent board", (r"(?i)agent[- ]board", r"\bboard\.py\b", r"(?i)\bthe board\b")),
-    System("gmail", "Gmail", (r"\bGmail\b",)),
-    System("gcal", "Google Calendar", (r"Google Calendar",)),
-    System("claude_cli", "Claude Code", (r"\bClaude Code\b",)),
-    System("cursor_cli", "Cursor Agent", (r"\bCursor Agent\b",)),
-    System("codex_cli", "Codex CLI", (r"\bCodex CLI\b",)),
-)
+SYSTEMS = tuple(System(system["key"], system["label"], group, tuple(system["patterns"]))
+                for group, systems in CONFIG["systems"].items() for system in systems)
 SYSTEM_BY_KEY = {system.key: system for system in SYSTEMS}
+GROUPS = tuple(CONFIG["systems"])
+GITHUB_OWNER = CONFIG["github_owner"]
+REPO_SYSTEMS = {repo.lower(): key for repo, key in CONFIG["repo_systems"].items()}
+NOT_IN_A_PATH = r"(?<![\w/])"
+AFTER_GITHUB_COM = r"(?<=github\.com/)"
 
 
 def negated(sentence: str, start: int) -> bool:
@@ -107,10 +117,12 @@ def name_pattern(names: Iterable[str]) -> str:
 class EdgeRules:
     def __init__(self, bot_names: Iterable[str]):
         self.keys = {name.lower(): name for name in bot_names}
+        self.skip = re.compile(r"(?i)" + name_pattern(self.keys) + r"\s*=")
         self.keys.update(dict.fromkeys(FAN_OUT_PHRASES, FAN_OUT))
         target = name_pattern(self.keys)
         self.mention = re.compile(r"(?i)" + target)
-        self.verb_then_name = re.compile(rf"(?i)\b(?:{'|'.join(HANDOFF_VERBS)})\s+(?:the\s+owner\s+and\s+)?(?P<name>{target})")
+        owner = name_pattern(OWNER_WORDS)
+        self.verb_then_name = re.compile(rf"(?i)\b(?:{'|'.join(HANDOFF_VERBS)})\s+(?:{owner}\s+and\s+)?(?P<name>{target})")
         self.verb = re.compile(rf"(?i)\b(?:{'|'.join(HANDOFF_STEMS)})(?:e?s|e?d)?\b")
         self.to_name = re.compile(rf"(?i)\bto\s+(?P<name>{target})")
         self.save = re.compile(r"(?i)\bsav(?:e|es|ed)\b")
@@ -143,12 +155,25 @@ class EdgeRules:
                 if any(not negated(sentence, m.start()) for p in patterns for m in p.finditer(sentence))}
 
 
+def repo_system(repo: str) -> str:
+    return REPO_SYSTEMS.get(repo.lower(), "github")
+
+
 CRON_FIELD = r"[0-9*,/-]+"
-SCHEDULE = re.compile(rf"({CRON_FIELD}) ({CRON_FIELD}) ({CRON_FIELD}) ({CRON_FIELD}) ({CRON_FIELD})")
+FIVE_FIELDS = rf"({CRON_FIELD}) ({CRON_FIELD}) ({CRON_FIELD}) ({CRON_FIELD}) ({CRON_FIELD})"
+DISK_SCHEDULE = re.compile(rf"(?:CRON_TZ=(\S+) )?{FIVE_FIELDS}")
+REPORTED_CRON_TZ = re.compile(rf"\bCRON_TZ=(\S+) {FIVE_FIELDS}")
+REPORTED_CRON_WORD = re.compile(rf"\bCron {FIVE_FIELDS} \(([^)]+)\)")
 FIELD_LIMITS = {"minute": (0, 59), "hour": (0, 23), "dom": (1, 31), "month": (1, 12), "dow": (0, 7)}
 STEPPED_FIELDS = ("minute", "hour")
-FIELD = re.compile(r"^- \*\*(?P<key>[A-Za-z ]+):\*\* (?P<value>.*)$")
+
+SECTION_HEADING = re.compile(r"^## (?!\d+\. )")
+NUMBERED_LINE = re.compile(r"^\d+\. (?P<name>.+?)\. (?P<state>Enabled|Disabled)\.(?:\s|$)")
+NUMBERED_HEADING = re.compile(r"^## \d+\. (?P<name>.+)$")
+STATE_LINE = re.compile(r"^(?P<state>Enabled|Disabled)\.(?:\s|$)")
+DISK_FIELD = re.compile(r"^- \*\*(?P<key>[A-Za-z ]+):\*\* (?P<value>.*)$")
 CODE_SPAN = re.compile(r"`([^`]*)`")
+REPORTED_MARK = "(reported by bot"
 
 
 def expand(field: str, value: str, where: str) -> tuple[int, ...]:
@@ -178,16 +203,32 @@ def expand(field: str, value: str, where: str) -> tuple[int, ...]:
     return tuple(sorted(values))
 
 
-def parse_schedule(where: str, text: str) -> Cron:
-    match = SCHEDULE.fullmatch(text.strip())
-    if not match:
-        raise ChartError(f"{where}: cannot read schedule {text!r}")
-    cron = Cron(*match.groups())
+def make_cron(where: str, fields: Sequence[str], zone: str | None) -> Cron:
+    if zone is not None and zone != TIME_ZONE:
+        raise ChartError(f"{where}: schedule uses time zone {zone}, expected {TIME_ZONE or 'none'}")
+    cron = Cron(*fields)
     for field, value in zip(Cron._fields, cron):
         expand(field, value, where)
     if cron.dom != "*" and cron.dow != "*":
         raise ChartError(f"{where}: cron {' '.join(cron)} restricts both day of month and day of week")
     return cron
+
+
+def parse_schedule(where: str, text: str) -> Cron:
+    match = DISK_SCHEDULE.fullmatch(text.strip())
+    if not match or (match.group(1) and not TIME_ZONE):
+        raise ChartError(f"{where}: cannot read schedule {text!r}")
+    return make_cron(where, match.groups()[1:], match.group(1))
+
+
+def reported_cron(where: str, line: str) -> Cron:
+    cron_tz = REPORTED_CRON_TZ.search(line)
+    if cron_tz:
+        return make_cron(where, cron_tz.groups()[1:], cron_tz.group(1))
+    cron_word = REPORTED_CRON_WORD.search(line)
+    if cron_word:
+        return make_cron(where, cron_word.groups()[:5], cron_word.group(6))
+    raise ChartError(f"{where}: no cron on the routine's header line {line!r}")
 
 
 def trigger_parts(where: str, trigger: dict) -> tuple[tuple[Cron, ...], tuple[RepoListener, ...]]:
@@ -221,7 +262,7 @@ def fenced_text(lines: Sequence[str], where: str) -> str:
 def fields(lines: Iterable[str]) -> dict[str, str]:
     found = {}
     for line in lines:
-        match = FIELD.match(line)
+        match = DISK_FIELD.match(line)
         if match:
             value = match.group("value").strip()
             span = CODE_SPAN.match(value)
@@ -243,9 +284,13 @@ def split_at_unfenced_headings(lines: Sequence[str], is_heading) -> tuple[list[s
     return preamble, sections
 
 
-def parse_routines(bot: str, body: Sequence[str]) -> list[Routine]:
+def trimmed(lines: Sequence[str]) -> str:
+    return "\n".join(lines).strip("\n")
+
+
+def disk_routines(bot: str, body: Sequence[str]) -> list[Routine]:
     preamble, sections = split_at_unfenced_headings(body, lambda line: line.startswith("### "))
-    stray = [line for line in preamble if FIELD.match(line)]
+    stray = [line for line in preamble if DISK_FIELD.match(line)]
     if stray:
         raise ChartError(f"{bot}: a routine field under ## Routines has no ### heading: {stray[0]!r}")
     routines = []
@@ -271,26 +316,84 @@ def parse_routines(bot: str, body: Sequence[str]) -> list[Routine]:
     return routines
 
 
+def reported_routines(bot: str, body: Sequence[str]) -> list[Routine]:
+    content = trimmed(body)
+    if content.startswith("None."):
+        return []
+    _, sections = split_at_unfenced_headings(body, lambda line: NUMBERED_LINE.match(line) or NUMBERED_HEADING.match(line))
+    if not sections and content:
+        raise ChartError(f"{bot}: could not find any routine under the reported routines heading")
+    routines = []
+    for heading, lines in sections:
+        numbered = NUMBERED_LINE.match(heading)
+        if numbered:
+            name, state, cron_line = numbered.group("name"), numbered, heading
+        else:
+            name = NUMBERED_HEADING.match(heading).group("name").strip()
+            cron_line = lines[0] if lines else ""
+            state = STATE_LINE.match(cron_line)
+            if not state:
+                raise ChartError(f"{bot}: {name}: expected Enabled. or Disabled. after the heading")
+        routines.append(Routine(name, (reported_cron(f"{bot}: {name}", cron_line),), (),
+                                state.group("state") == "Enabled", trimmed([heading, *lines])))
+    return routines
+
+
+def creation(name: str, header: dict[str, str]) -> tuple[bool | None, str, str]:
+    observed, evidence = header.get("Observed", ""), header.get("Evidence", "")
+    if "Created" in header:
+        states = {"yes": True, "no": False, "unknown": None}
+        if header["Created"] not in states:
+            raise ChartError(f"{name}: Created must be yes, no or unknown")
+        created = states[header["Created"]]
+        if created is not None and not (observed and evidence):
+            raise ChartError(f"{name}: Created yes/no needs Observed and Evidence")
+    else:
+        identity = header.get("ID", "")
+        created = None
+        if identity == NOT_CREATED:
+            created = False
+        else:
+            try:
+                UUID(identity)
+            except ValueError:
+                pass
+            else:
+                created = True
+    if observed:
+        try:
+            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", observed):
+                raise ValueError
+            date.fromisoformat(observed)
+        except ValueError:
+            raise ChartError(f"{name}: Observed must be a valid YYYY-MM-DD date") from None
+    return created, observed, evidence
+
+
 def parse_bot(path: Path) -> Bot:
     lines = path.read_text(encoding="utf-8").splitlines()
-    preamble, sections = split_at_unfenced_headings(lines, lambda line: line.startswith("## "))
+    preamble, sections = split_at_unfenced_headings(lines, SECTION_HEADING.match)
     titles = [line[2:].strip() for line in preamble if line.startswith("# ")]
     if not titles:
         raise ChartError(f"{path.name}: no '# ' heading with the bot's name")
     name = titles[0]
+    header = fields(preamble)
+    created, observed, evidence = creation(name, header) if CREATION_STATUS else (None, "", "")
+    optional = not CREATION_STATUS and header.get("Default", "").lower() == "no"
     instructions = None
     routines: list[Routine] = []
     for heading, body in sections:
         if heading.startswith("## Instructions"):
             instructions = fenced_text(body, f"{name}: instructions")
         elif heading.strip() == "## Routines":
-            routines += parse_routines(name, body)
+            routines += disk_routines(name, body)
+        elif REPORTED_MARK in heading:
+            routines += reported_routines(name, body)
         elif "routines" in heading.lower():
             raise ChartError(f"{name}: unknown routines heading {heading!r}")
     if instructions is None:
         raise ChartError(f"{name}: no ## Instructions section")
-    header = fields(preamble)
-    return Bot(name, header.get("Category", ""), header.get("Default", "").lower() == "no", instructions, tuple(routines))
+    return Bot(name, header.get("Category", ""), optional, instructions, tuple(routines), created, observed, evidence)
 
 
 def load_bots(directory: Path) -> list[Bot]:
@@ -313,12 +416,24 @@ def find_edges(bots: Sequence[Bot]) -> set[Edge]:
         for label, text in bot_texts(bot):
             previous = ""
             for sentence in sentences(text):
+                if rules.skip.search(sentence):
+                    previous = ""
+                    continue
                 targets = rules.handoffs(bot.name, sentence, previous)
                 edges.update(Edge(bot.name, target, label, HANDOFF) for target in targets)
                 edges.update(Edge(bot.name, key, label, USES) for key in rules.systems_used(sentence))
                 previous = sentence
-        edges.update(Edge("github", bot.name, routine.name, WAKES) for routine in bot.routines if routine.listeners)
+        for routine in bot.routines:
+            edges.update(Edge(repo_system(l.repo), bot.name, routine.name, WAKES) for l in routine.listeners)
     return edges
+
+
+def github_repos(bots: Sequence[Bot]) -> set[str]:
+    mention = re.compile(rf"(?:{NOT_IN_A_PATH}|{AFTER_GITHUB_COM}){re.escape(GITHUB_OWNER)}/([A-Za-z0-9._-]+)")
+    repos = {listener.repo for bot in bots for routine in bot.routines for listener in routine.listeners}
+    repos.update(f"{GITHUB_OWNER}/" + m.group(1).rstrip("._-")
+                 for bot in bots for _, text in bot_texts(bot) for m in mention.finditer(text))
+    return {repo.lower() for repo in repos if repo_system(repo) == "github"}
 
 
 WEEKDAYS = ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
@@ -326,8 +441,24 @@ WEEKDAY_PLURALS = ("Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", 
 MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 KIND_WORDS = {HANDOFF: "hands off to", WAKES: "wakes", USES: "uses"}
 SYSTEM_ORDER = {system.key: i for i, system in enumerate(SYSTEMS)}
-HEADER = ("> Generated by `scripts/bot_chart.py` from `bots/*.md`. Don't edit this file by hand. "
-          "After you change a bot file, run `python3 scripts/bot_chart.py`.")
+
+
+def config_text(key: str) -> str:
+    readme = CONFIG["readme"]
+    link = f"[{readme.partition('#')[0]}]({'../' * (len(OUT.parts) - 1)}{readme})"
+    return CONFIG[key].format(script=CONFIG["script"], readme=link, time_zone=TIME_ZONE)
+
+
+HEADER = f"> Generated by `{CONFIG['script']}` from `bots/*.md`. Don't edit this file by hand. {config_text('regenerate')}"
+TITLE = config_text("title")
+INTRO = config_text("intro")
+if CREATION_STATUS:
+    PALE_NOTE = "A pale bot with a dashed outline is not created yet."
+    DOT_NOTE = "Each dot is a routine's start time, in its bot's colour. Creation status is in the tables, not the image."
+else:
+    PALE_NOTE = "A pale bot with a dashed outline is one that setup adds only when the owner asks for it."
+    DOT_NOTE = ("Each dot is a routine's start time. A filled dot on the left marks a bot setup adds by default, "
+                "and a ring marks an optional one.")
 
 
 class Colour(NamedTuple):
@@ -336,12 +467,7 @@ class Colour(NamedTuple):
     dark: str
 
 
-CATEGORY_COLOURS = {
-    "Daily life": Colour("green", "#1a7f37", "#3fb950"),
-    "Work": Colour("blue", "#0969da", "#4493f8"),
-    "Builders": Colour("purple", "#8250df", "#ab7df8"),
-    "Content": Colour("orange", "#bc4c00", "#f0883e"),
-}
+CATEGORY_COLOURS = {name: Colour(**colour) for name, colour in CONFIG["categories"].items()}
 OTHER_CATEGORY = "other"
 OTHER_COLOUR = Colour("grey", "#59636e", "#9198a1")
 ARROW_STYLES = {
@@ -350,7 +476,7 @@ ARROW_STYLES = {
     USES: "stroke:#3192aa,stroke-width:1.5px",
 }
 OUTLINE = "#8c959f"
-OPTIONAL_TINT = "26"
+PALE_TINT = "26"
 FLOWCHART_INIT = '%%{init: {"flowchart": {"curve": "basis"}}}%%'
 
 
@@ -450,8 +576,14 @@ def trigger_words(listeners: Sequence[RepoListener]) -> str:
     return "; ".join(f"{join_commas(events)} in {join_commas(repos)}" for events, repos in repos_by_events.items())
 
 
+def creation_note(bot: Bot) -> str:
+    if not CREATION_STATUS:
+        return ""
+    return {True: "", False: NOT_CREATED, None: "(creation unknown)"}[bot.created]
+
+
 def bot_title(bot: Bot) -> str:
-    return f"{bot.name} (optional)" if bot.optional else bot.name
+    return f"{bot.name} {'(optional)' if bot.optional else creation_note(bot)}".rstrip()
 
 
 def category(bot: Bot) -> str:
@@ -492,11 +624,9 @@ def grouped(edges: Iterable[Edge]) -> dict[tuple[str, str], list[str]]:
 
 
 def bot_node(bot: Bot) -> str:
-    return f"    {node_id(bot.name)}({quoted(bot.name)})"
-
-
-def system_nodes(keys: Iterable[str]) -> list[str]:
-    return [f"    {node_id(key)}[{quoted(SYSTEM_BY_KEY[key].label)}]" for key in sorted(keys, key=node_order)]
+    note = creation_note(bot)
+    label = f"{bot.name}<br/>{note}" if note else bot.name
+    return f"    {node_id(bot.name)}({quoted(label)})"
 
 
 def node_styles(bots: Iterable[Bot], systems: Iterable[str] = (), fan_out: bool = False) -> list[str]:
@@ -504,8 +634,9 @@ def node_styles(bots: Iterable[Bot], systems: Iterable[str] = (), fan_out: bool 
     for bot in bots:
         name, hue = slug(category(bot)), colour(bot).light
         style = f"fill:{hue},stroke:{hue},color:#ffffff"
-        if bot.optional:
-            name, style = f"{name}_optional", f"fill:{hue}{OPTIONAL_TINT},stroke:{hue},stroke-width:2px,stroke-dasharray:5 3"
+        if bot.optional or bot.created is False:
+            name = f"{name}_optional" if bot.optional else f"{name}_planned"
+            style = f"fill:{hue}{PALE_TINT},stroke:{hue},stroke-width:2px,stroke-dasharray:5 3"
         classes.setdefault(name, (style, []))[1].append(node_id(bot.name))
     systems = sorted(systems, key=node_order)
     if systems:
@@ -525,40 +656,59 @@ def link_styles(kinds: Sequence[str]) -> list[str]:
     return [f"    linkStyle {','.join(ids)} {ARROW_STYLES[kind]}" for kind, ids in indexes.items()]
 
 
-def handoffs_and_wakes(bots: Sequence[Bot], edges: set[Edge]) -> list[str]:
-    handoffs = grouped(edge for edge in edges if edge.kind == HANDOFF)
-    wakes = grouped(edge for edge in edges if edge.kind == WAKES)
-    fan_out = any(target == FAN_OUT for _, target in handoffs)
-    systems = {source for source, _ in wakes}
-    lines = [FLOWCHART_INIT, "flowchart TB", *(bot_node(bot) for bot in bots)]
-    if fan_out:
-        lines.append(f"    {node_id(FAN_OUT)}([{quoted(FAN_OUT)}])")
-    if systems:
-        lines += system_nodes(systems)
-    lines += [f"    {node_id(source)} --> {node_id(target)}" for source, target in handoffs]
-    for (source, target), labels in wakes.items():
-        label = f"wakes: {labels[0]}" if len(labels) == 1 else f"wakes: {len(labels)} routines"
-        lines.append(f"    {node_id(source)} ==>|{quoted(label)}| {node_id(target)}")
-    lines += node_styles(bots, systems, fan_out)
-    return lines + link_styles([HANDOFF] * len(handoffs) + [WAKES] * len(wakes))
+def system_labels(bots: Sequence[Bot]) -> dict[str, str]:
+    labels = {system.key: system.label for system in SYSTEMS}
+    if GITHUB_OWNER:
+        repos = len(github_repos(bots))
+        labels["github"] += f" ({repos} repo{'' if repos == 1 else 's'})"
+    return labels
 
 
-def uses(bots: Sequence[Bot], edges: set[Edge]) -> list[str]:
-    pairs = grouped(edge for edge in edges if edge.kind == USES)
-    if not pairs:
-        return []
-    users = [bot for bot in bots if any(source == bot.name for source, _ in pairs)]
-    systems = {target for _, target in pairs}
-    lines = [FLOWCHART_INIT, "flowchart TB", *(bot_node(bot) for bot in users), *system_nodes(systems)]
-    lines += [f"    {node_id(source)} --> {node_id(target)}" for source, target in pairs]
-    return lines + node_styles(users, systems) + link_styles([USES] * len(pairs))
+class Chart:
+    def __init__(self, bots: Sequence[Bot], edges: set[Edge]):
+        self.bots = bots
+        self.edges = edges
+        self.system_labels = system_labels(bots)
+
+    def system_nodes(self, keys: Iterable[str]) -> list[str]:
+        return [f"    {node_id(key)}[{quoted(self.system_labels[key])}]" for key in sorted(keys, key=node_order)]
+
+    def handoffs_and_wakes(self) -> list[str]:
+        handoffs = grouped(edge for edge in self.edges if edge.kind == HANDOFF)
+        wakes = grouped(edge for edge in self.edges if edge.kind == WAKES)
+        fan_out = any(target == FAN_OUT for _, target in handoffs)
+        systems = {source for source, _ in wakes}
+        lines = [FLOWCHART_INIT, "flowchart TB", *(bot_node(bot) for bot in self.bots)]
+        if fan_out:
+            lines.append(f"    {node_id(FAN_OUT)}([{quoted(FAN_OUT)}])")
+        lines += self.system_nodes(systems)
+        lines += [f"    {node_id(source)} --> {node_id(target)}" for source, target in handoffs]
+        for (source, target), labels in wakes.items():
+            label = f"wakes: {labels[0]}" if len(labels) == 1 else f"wakes: {len(labels)} routines"
+            lines.append(f"    {node_id(source)} ==>|{quoted(label)}| {node_id(target)}")
+        lines += node_styles(self.bots, systems, fan_out)
+        return lines + link_styles([HANDOFF] * len(handoffs) + [WAKES] * len(wakes))
+
+    def uses(self, group: str) -> list[str]:
+        pairs = grouped(edge for edge in self.edges if edge.kind == USES and SYSTEM_BY_KEY[edge.target].group == group)
+        if not pairs:
+            return []
+        users = [bot for bot in self.bots if any(source == bot.name for source, _ in pairs)]
+        systems = {target for _, target in pairs}
+        lines = [FLOWCHART_INIT, "flowchart TB", *(bot_node(bot) for bot in users), *self.system_nodes(systems)]
+        lines += [f"    {node_id(source)} --> {node_id(target)}" for source, target in pairs]
+        return lines + node_styles(users, systems) + link_styles([USES] * len(pairs))
 
 
 def legend(bots: Sequence[Bot]) -> str:
     present = {category(bot) for bot in bots}
-    names = [name for name in (*CATEGORY_COLOURS, OTHER_CATEGORY) if name in present]
-    words = [f"{CATEGORY_COLOURS[name].word} for {name}" if name in CATEGORY_COLOURS
-             else f"{OTHER_COLOUR.word} for other categories" for name in names]
+    words = [f"{CATEGORY_COLOURS[name].word} for {name}" for name in CATEGORY_COLOURS if name in present]
+    others = {bool(bot.category) for bot in bots if category(bot) == OTHER_CATEGORY}
+    if not words and others == {False}:
+        return f"A bot's colour comes from the Category line in its file. No bot file has one yet, so every bot is {OTHER_COLOUR.word}."
+    if others:
+        whom = "other categories or none" if len(others) == 2 else "other categories" if True in others else "bots without one"
+        words.append(f"{OTHER_COLOUR.word} for {whom}")
     return f"A bot's colour is its category: {join_and(words)}."
 
 
@@ -568,6 +718,14 @@ def mermaid(lines: Sequence[str]) -> list[str]:
 
 def cell(text: str) -> str:
     return text.replace("|", "\\|")
+
+
+def creation_table(bots: Sequence[Bot]) -> list[str]:
+    states = {True: "Created", False: "Not created", None: "Unknown"}
+    return ["| Bot | Recorded creation status | Last observed | Evidence |", "|---|---|---|---|", *[
+        f"| {cell(bot.name)} | {states[bot.created]} | {bot.observed or 'Not recorded'} | "
+        f"{cell(bot.evidence) if bot.evidence else 'Not recorded'} |" for bot in bots
+    ]]
 
 
 def edge_table(edges: set[Edge]) -> list[str]:
@@ -682,8 +840,7 @@ def schedule_files(stem: str) -> dict[Theme, str]:
 def schedule_notes(bots: Sequence[Bot]) -> str:
     disabled = [f"{bot.name}'s {routine.name}"
                 for bot in bots for routine in bot.routines if routine.crons and not routine.enabled]
-    notes = ["Each dot is a routine's start time. A filled dot on the left marks a bot setup adds by default, "
-             "and a ring marks an optional one."]
+    notes = [DOT_NOTE]
     if len(disabled) == 1:
         notes.append(f"The chart leaves out one disabled routine, {disabled[0]}.")
     elif disabled:
@@ -706,27 +863,35 @@ def routine_tables(bots: Sequence[Bot]) -> list[str]:
     return lines[:-1]
 
 
-def render(bots: Sequence[Bot], stem: str = "bot-chart") -> str:
+def render(bots: Sequence[Bot], stem: str = OUT.stem) -> str:
     edges = find_edges(bots)
     files = schedule_files(stem)
-    lines = [
-        HEADER, "", "# Bot chart", "",
-        "Times are in the owner's timezone, like the schedules in the bot files. "
-        "[scripts/README.md](../scripts/README.md#bot_chartpy) explains how the chart finds each arrow.", "",
+    chart = Chart(bots, edges)
+    lines = [HEADER, "", f"# {TITLE}", "", INTRO, ""]
+    if CREATION_STATUS:
+        lines += [
+            "## Recorded setup", "",
+            "Creation status and its observation date come from each bot's header. This is not a live poll or verification of every routine. "
+            "An undated legacy ID records existence in an earlier export; a missing ID stays unknown.", "",
+            *creation_table(bots), "",
+        ]
+    lines += [
         "## Who talks to whom", "",
         "### Hand-offs and what wakes each bot", "",
         "Grey arrows are hand-offs between bots. The table of every edge below says where each one appears. "
         "Thick amber arrows are GitHub events that wake a bot. "
-        f"{legend(bots)} A pale bot with a dashed outline is one that setup adds only when the owner asks for it.", "",
-        *mermaid(handoffs_and_wakes(bots, edges)), "",
-        "### What each bot uses", "",
+        f"{legend(bots)} {PALE_NOTE}", "",
+        *mermaid(chart.handoffs_and_wakes()), "",
     ]
-    used = uses(bots, edges)
-    if used:
-        lines += ["Each teal arrow points from a bot to a system it uses.", "", *mermaid(used)]
-    else:
-        lines.append("No bot uses an outside system.")
-    lines += ["", "### Every edge", "", *edge_table(edges), ""]
+    for group in GROUPS:
+        uses = chart.uses(group)
+        lines += [f"### {group}", ""]
+        if uses:
+            lines += ["Each teal arrow points from a bot to a system it uses.", "", *mermaid(uses)]
+        else:
+            lines.append("No bot uses an outside system." if len(GROUPS) == 1 else "No bot uses these systems.")
+        lines.append("")
+    lines += ["### Every edge", "", *edge_table(edges), ""]
     lines += [
         "## A day of scheduled routines", "",
         "<picture>",
@@ -741,10 +906,10 @@ def render(bots: Sequence[Bot], stem: str = "bot-chart") -> str:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Write docs/bot-chart.md and its schedule images from bots/.")
+    parser = argparse.ArgumentParser(description=f"Write {OUT.as_posix()} and its schedule images from the bot files in bots/.")
     parser.add_argument("--bots", type=Path, default=ROOT / "bots", help="folder of bot files (default: bots/)")
-    parser.add_argument("--out", type=Path, default=ROOT / "docs" / "bot-chart.md",
-                        help="page to write, with its images beside it (default: docs/bot-chart.md)")
+    parser.add_argument("--out", type=Path, default=ROOT / OUT,
+                        help=f"page to write, with its images beside it (default: {OUT.as_posix()})")
     args = parser.parse_args(argv)
     try:
         bots = load_bots(args.bots)
@@ -754,7 +919,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         for theme, name in schedule_files(args.out.stem).items():
             outputs[args.out.with_name(name)] = schedule_svg(bots, theme)
     except ChartError as error:
-        print(f"bot_chart: {error}", file=sys.stderr)
+        print(f"{SCRIPT.stem}: {error}", file=sys.stderr)
         return 1
     args.out.parent.mkdir(parents=True, exist_ok=True)
     for path, text in outputs.items():

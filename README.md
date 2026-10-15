@@ -6,9 +6,10 @@ A starter team of Grok Bot bots that you set up by chatting with one of them. Ea
 
 You need Grok Bot and a GitHub account.
 
-1. In Grok Bot, create a new bot named setup. Paste the Instructions block from [bots/setup.md](bots/setup.md) as its description.
-2. Tell it "set me up".
-3. Answer its three questions about your GitHub username, your timezone and which bots you want.
+1. Click [Use this template](https://github.com/dfakkeldy/grok-bot-starter/generate). Name the new repo `grok-bot-setup` and choose Private.
+2. In Grok Bot, create a new bot named setup. Paste the Instructions block from [bots/setup.md](bots/setup.md) as its description.
+3. Tell it "set me up".
+4. Answer its three questions about your GitHub username, your timezone and which bots you want.
 
 It then helps you sign in to GitHub and connect your apps. It never asks for a password or token in chat.
 
@@ -48,11 +49,15 @@ The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when
 - clerk and the Coding group can work on your connected computer. Coding remembers your choice per project and defaults to Grok's computer for Linux work. Local commands follow that computer's existing approval setting. Always allow lets every bot in; setup never enables it.
 - A rule in a bot's instructions isn't enforced. Where an app has a switch, setup asks you to use it, such as turning off Gmail's send tools.
 
-## Install without the template
+## Make your copy from a terminal
 
-1. Run `gh repo create <you>/grok-bot-setup --private --template dfakkeldy/grok-bot-starter`.
-2. In Grok Bot, create a bot named setup with the Instructions block from [bots/setup.md](bots/setup.md) as its description.
-3. Tell it "set me up".
+Instead of Quick start step 1, you can run this, with your GitHub username in place of `<you>`:
+
+```sh
+gh repo create <you>/grok-bot-setup --private --template dfakkeldy/grok-bot-starter
+```
+
+If you skip step 1 altogether, setup runs the same command once you've signed in. It uses a `grok-bot-setup` repo you already have.
 
 ## Limits, as of 2026-10-14
 

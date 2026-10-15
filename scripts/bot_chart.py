@@ -82,6 +82,9 @@ SYSTEMS = (
     System("board", "agent board", (r"(?i)agent[- ]board", r"\bboard\.py\b", r"(?i)\bthe board\b")),
     System("gmail", "Gmail", (r"\bGmail\b",)),
     System("gcal", "Google Calendar", (r"Google Calendar",)),
+    System("claude_cli", "Claude Code", (r"\bClaude Code\b",)),
+    System("cursor_cli", "Cursor Agent", (r"\bCursor Agent\b",)),
+    System("codex_cli", "Codex CLI", (r"\bCodex CLI\b",)),
 )
 SYSTEM_BY_KEY = {system.key: system for system in SYSTEMS}
 

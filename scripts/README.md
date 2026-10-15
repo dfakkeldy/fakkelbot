@@ -138,7 +138,7 @@ A bot hands off to another bot when a sentence has one of these:
 
 "each affected bot", "each changed bot" and "that bot" all point to one node, `each affected bot`. setup and liaison send to whichever bot a change or a board thread touches, so the chart can't name them.
 
-A bot uses an outside system when a sentence matches one of that system's patterns in the `SYSTEMS` table in `bot_chart.py`. The table has GitHub, the knowledge base, the agent board, Gmail and Google Calendar. To chart another app, add a line to the table. A routine's GitHub trigger is a thick arrow from GitHub to its bot.
+A bot uses an outside system when a sentence matches one of that system's patterns in the `SYSTEMS` table in `bot_chart.py`. The table has GitHub, the knowledge base, the agent board, Gmail, Google Calendar, Claude Code, Cursor Agent and Codex CLI. To chart another app, add a line to the table. A routine's GitHub trigger is a thick arrow from GitHub to its bot.
 
 Two rules keep a mention from counting:
 

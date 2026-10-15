@@ -13,7 +13,10 @@ Grey arrows are hand-offs between bots. The table of every edge below says where
 ```mermaid
 %%{init: {"flowchart": {"curve": "basis"}}}%%
 flowchart TB
+    bot_claude("claude")
     bot_clerk("clerk")
+    bot_codex("codex")
+    bot_cursor("cursor")
     bot_editor("editor")
     bot_inbox("inbox")
     bot_jobscout("jobscout")
@@ -26,8 +29,14 @@ flowchart TB
     bot_setup("setup")
     fan_each_affected_bot(["each affected bot"])
     sys_github["GitHub"]
+    bot_claude --> bot_liaison
+    bot_claude --> bot_librarian
     bot_clerk --> bot_liaison
     bot_clerk --> bot_librarian
+    bot_codex --> bot_liaison
+    bot_codex --> bot_librarian
+    bot_cursor --> bot_liaison
+    bot_cursor --> bot_librarian
     bot_editor --> bot_liaison
     bot_editor --> bot_librarian
     bot_inbox --> bot_liaison
@@ -48,6 +57,8 @@ flowchart TB
     bot_scheduler --> bot_librarian
     bot_setup --> fan_each_affected_bot
     sys_github ==>|"wakes: apply"| bot_setup
+    classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
+    class bot_claude,bot_codex,bot_cursor builders_optional
     classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
     class bot_clerk,bot_pantry,bot_scheduler daily_life_optional
     classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
@@ -64,8 +75,8 @@ flowchart TB
     class sys_github system
     classDef fan_out fill:transparent,stroke:#8c959f,stroke-dasharray:4 3
     class fan_each_affected_bot fan_out
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 stroke:#8c959f,stroke-width:1.5px
-    linkStyle 21 stroke:#d4a72c,stroke-width:3px
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26 stroke:#8c959f,stroke-width:1.5px
+    linkStyle 27 stroke:#d4a72c,stroke-width:3px
 ```
 
 ### What each bot uses
@@ -75,6 +86,9 @@ Each teal arrow points from a bot to a system it uses.
 ```mermaid
 %%{init: {"flowchart": {"curve": "basis"}}}%%
 flowchart TB
+    bot_claude("claude")
+    bot_codex("codex")
+    bot_cursor("cursor")
     bot_editor("editor")
     bot_inbox("inbox")
     bot_liaison("liaison")
@@ -88,6 +102,18 @@ flowchart TB
     sys_board["agent board"]
     sys_gmail["Gmail"]
     sys_gcal["Google Calendar"]
+    sys_claude_cli["Claude Code"]
+    sys_cursor_cli["Cursor Agent"]
+    sys_codex_cli["Codex CLI"]
+    bot_claude --> sys_github
+    bot_claude --> sys_board
+    bot_claude --> sys_claude_cli
+    bot_codex --> sys_github
+    bot_codex --> sys_board
+    bot_codex --> sys_codex_cli
+    bot_cursor --> sys_github
+    bot_cursor --> sys_board
+    bot_cursor --> sys_cursor_cli
     bot_editor --> sys_github
     bot_editor --> sys_kb
     bot_inbox --> sys_gmail
@@ -99,6 +125,8 @@ flowchart TB
     bot_researcher --> sys_kb
     bot_scheduler --> sys_gcal
     bot_setup --> sys_github
+    classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
+    class bot_claude,bot_codex,bot_cursor builders_optional
     classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
     class bot_editor content_optional
     classDef daily_life fill:#1a7f37,stroke:#1a7f37,color:#ffffff
@@ -110,16 +138,22 @@ flowchart TB
     classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
     class bot_scheduler daily_life_optional
     classDef system fill:transparent,stroke:#8c959f,stroke-width:1.5px
-    class sys_github,sys_kb,sys_board,sys_gmail,sys_gcal system
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10 stroke:#3192aa,stroke-width:1.5px
+    class sys_github,sys_kb,sys_board,sys_gmail,sys_gcal,sys_claude_cli,sys_cursor_cli,sys_codex_cli system
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19 stroke:#3192aa,stroke-width:1.5px
 ```
 
 ### Every edge
 
 | From | To | Kind | Where |
 |---|---|---|---|
+| claude | liaison | hands off to | instructions |
+| claude | librarian | hands off to | instructions |
 | clerk | liaison | hands off to | instructions |
 | clerk | librarian | hands off to | instructions |
+| codex | liaison | hands off to | instructions |
+| codex | librarian | hands off to | instructions |
+| cursor | liaison | hands off to | instructions |
+| cursor | librarian | hands off to | instructions |
 | editor | liaison | hands off to | instructions |
 | editor | librarian | hands off to | instructions |
 | inbox | liaison | hands off to | instructions |
@@ -140,6 +174,15 @@ flowchart TB
 | scheduler | librarian | hands off to | instructions |
 | setup | each affected bot | hands off to | instructions |
 | GitHub | setup | wakes | apply |
+| claude | GitHub | uses | instructions |
+| claude | agent board | uses | instructions |
+| claude | Claude Code | uses | instructions |
+| codex | GitHub | uses | instructions |
+| codex | agent board | uses | instructions |
+| codex | Codex CLI | uses | instructions |
+| cursor | GitHub | uses | instructions |
+| cursor | agent board | uses | instructions |
+| cursor | Cursor Agent | uses | instructions |
 | editor | GitHub | uses | weekly-ideas |
 | editor | knowledge base | uses | instructions |
 | inbox | Gmail | uses | instructions, inbox-sweep |
@@ -165,7 +208,19 @@ Routines that only run on GitHub events are in the tables below.
 
 ## Routines by bot
 
+### claude (optional)
+
+No routines.
+
 ### clerk (optional)
+
+No routines.
+
+### codex (optional)
+
+No routines.
+
+### cursor (optional)
 
 No routines.
 

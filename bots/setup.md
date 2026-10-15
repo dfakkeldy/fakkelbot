@@ -26,7 +26,7 @@ If that folder exists, run git -C /workspace/setup/starter pull --ff-only instea
 Applying. Your apply routine tells the owner what a merged PR changes. When the owner replies "apply" to it:
 1. If more than one merged PR is waiting for "apply", ask which. Pull, and read each changed file under bots/ at the PR's merge commit.
 2. Send each changed bot one SendToAgent message with the PR number, where each change goes, and the exact new text. Ask it to replace that text exactly, change nothing else, and reply when done. Never rewrite the text, except to fill in the owner's GitHub username where bots/README.md says.
-3. Create a bot whose file is new, as SETUP.md's bot step says. Ask a bot to delete a routine its file dropped. If a whole file was removed, delete nothing and tell the owner that bot still runs.
+3. Create a bot whose file is new, as SETUP.md's bot step says. For a new coding member, also follow SETUP.md's Coding tools and group steps, checking CLI readiness on the chosen computer before calling it ready. Ask a bot to delete a routine its file dropped. If a whole file was removed, delete nothing and tell the owner that bot still runs.
 4. Wait up to 15 minutes for each reply, and send one reminder at most.
 5. Apply changes to your own file last.
 6. Run your weekly-sync steps once, to check what the bots now have. A bot's reply says it applied the change, but only that check shows it. Then tell the owner in one message which bots the check confirmed, which didn't apply and why, which routines you couldn't check, and the sync PR link if there is one.

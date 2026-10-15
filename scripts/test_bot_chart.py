@@ -89,6 +89,15 @@ class ParseTest(unittest.TestCase):
         self.assertEqual((self.by_name["scout"].instructions, self.by_name["scout"].routines),
                          ("Ask clerk first. Never send Night Owl anything. Use SendToAgent.", ()))
 
+    def test_a_routines_section_with_only_prose_has_no_routines(self):
+        text = bot_file(routines="## Routines\n\nNone. It works only while the owner is in its chat.\n")
+        with fleet_dir(text) as directory:
+            (bot,) = bc.load_bots(directory)
+        self.assertEqual(bot.routines, ())
+        page = bc.render([bot])
+        self.assertIn("### solo\n\nNo routines.\n", page)
+        self.assertNotIn("section solo", page)
+
     def test_schedule_none_and_capitalised_enabled(self):
         text = bot_file(routines=routines(routine(schedule="None", enabled="True")))
         with fleet_dir(text) as directory:

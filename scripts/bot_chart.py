@@ -180,8 +180,8 @@ def expand(field: str, value: str, where: str) -> tuple[int, ...]:
     low, high = FIELD_LIMITS[field]
     values: set[int] = set()
     for part in value.split(","):
-        span, _, step_text = part.partition("/")
-        if step_text and field not in STEPPED_FIELDS:
+        span, slash, step_text = part.partition("/")
+        if slash and field not in STEPPED_FIELDS:
             raise ChartError(f"{where}: steps are not supported in the {field} field ({value!r})")
         if span == "*":
             start, end = low, high
@@ -191,7 +191,7 @@ def expand(field: str, value: str, where: str) -> tuple[int, ...]:
             start, end = (int(n) for n in span.split("-"))
         else:
             raise ChartError(f"{where}: cannot read the {field} field {value!r}")
-        if step_text and not re.fullmatch(r"[1-9]\d*", step_text):
+        if slash and not re.fullmatch(r"[1-9]\d*", step_text):
             raise ChartError(f"{where}: cannot read the step in the {field} field {value!r}")
         if not low <= start <= end <= high:
             raise ChartError(f"{where}: the {field} field {value!r} is out of range")
@@ -234,7 +234,10 @@ def reported_cron(where: str, line: str) -> Cron:
 def trigger_parts(where: str, trigger: dict) -> tuple[tuple[Cron, ...], tuple[RepoListener, ...]]:
     kind = trigger.get("type")
     if kind == "github":
-        return (), (RepoListener(trigger["repo"], tuple(trigger["events"])),)
+        repo, events = trigger["repo"], trigger["events"]
+        if not isinstance(repo, str) or not isinstance(events, list) or not all(isinstance(e, str) and e for e in events):
+            raise ChartError(f"{where}: a github trigger needs a repo name and a list of event names")
+        return (), (RepoListener(repo, tuple(events)),)
     if kind == "cron":
         return (parse_schedule(where, trigger["schedule"]),), ()
     if kind == "group":

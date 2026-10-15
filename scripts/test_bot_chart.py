@@ -215,6 +215,14 @@ class ParseErrorTest(unittest.TestCase):
         self.assert_fails("solo: check: cannot read trigger '{\"type\": \"github\", \"events\": []}' (KeyError('repo'))",
                           bot_file(routines=routines(routine(schedule="None", trigger='{"type": "github", "events": []}'))))
 
+    def test_empty_step(self):
+        self.assert_fails("solo: check: cannot read the step in the minute field '0/'",
+                          bot_file(routines=routines(routine(schedule="`0/ 7 * * *`"))))
+
+    def test_github_events_must_be_a_list(self):
+        self.assert_fails("solo: check: a github trigger needs a repo name and a list of event names",
+                          bot_file(routines=routines(routine(schedule="None", trigger='{"type": "github", "repo": "o/r", "events": "pr-merged"}'))))
+
     def test_enabled_must_be_true_or_false(self):
         self.assert_fails("solo: check: Enabled must be true or false",
                           bot_file(routines=routines(routine(enabled="yes"))))

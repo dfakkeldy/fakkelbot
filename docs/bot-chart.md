@@ -39,6 +39,7 @@ flowchart TB
     bot_cursor --> bot_librarian
     bot_editor --> bot_liaison
     bot_editor --> bot_librarian
+    bot_inbox --> bot_jobscout
     bot_inbox --> bot_liaison
     bot_inbox --> bot_librarian
     bot_inbox --> bot_scheduler
@@ -75,8 +76,8 @@ flowchart TB
     class sys_github system
     classDef fan_out fill:transparent,stroke:#8c959f,stroke-dasharray:4 3
     class fan_each_affected_bot fan_out
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26 stroke:#8c959f,stroke-width:1.5px
-    linkStyle 27 stroke:#d4a72c,stroke-width:3px
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27 stroke:#8c959f,stroke-width:1.5px
+    linkStyle 28 stroke:#d4a72c,stroke-width:3px
 ```
 
 ### What each bot uses
@@ -156,6 +157,7 @@ flowchart TB
 | cursor | librarian | hands off to | instructions |
 | editor | liaison | hands off to | instructions |
 | editor | librarian | hands off to | instructions |
+| inbox | jobscout | hands off to | instructions, inbox-sweep |
 | inbox | liaison | hands off to | instructions |
 | inbox | librarian | hands off to | instructions |
 | inbox | scheduler | hands off to | instructions, inbox-sweep |

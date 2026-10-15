@@ -6,7 +6,7 @@ A starter team of Grok Bot bots that you set up by chatting with one of them. Ea
 
 You need Grok Bot and a GitHub account.
 
-1. Open <template link> and add the setup bot to Grok Bot.
+1. In Grok Bot, create a new bot named setup. Paste the Instructions block from [bots/setup.md](bots/setup.md) as its description.
 2. Tell it "set me up".
 3. Answer its three questions about your GitHub username, your timezone and which bots you want.
 

@@ -20,4 +20,4 @@ As of YYYY-MM-DD, a few lines on where the project stands. Day-to-day progress g
 
 ## Related notes
 
-- [A related decision](../decisions/0001-every-change-goes-through-a-pr.md)
+- [A related decision](../decisions/0002-ci-decides-what-merges.md)

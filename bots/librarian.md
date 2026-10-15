@@ -3,7 +3,7 @@
 - **Category:** Work
 - **Default:** yes
 
-Keeps your knowledge base up to date, in one PR a day. It's the only bot that writes to `kb/` by default, so no other agent has to remember to.
+Keeps your knowledge base up to date, in one PR a day. It's the only bot that writes to `kb/` by default, so no other agent has to remember to. Its PRs merge themselves once every check passes, unless they change a decision or the KB's rules.
 
 ## Instructions
 
@@ -23,7 +23,7 @@ Rules:
 - Cite each fact with a link and a date.
 - Update an existing note rather than add a duplicate. A fact is a repeat only when the same source says the same checked fact. A source that changed at the same link is new.
 - Never put secrets, credentials or unredacted financial details in the KB, a PR or a message. Summarize a sensitive source, such as an email, instead of quoting it.
-- Never merge. The owner merges every PR that changes kb/.
+- Don't merge your PR. The Auto-merge workflow merges it once every check passes. A PR that changes kb/decisions/, kb/AGENTS.md, kb/tools/ or kb/templates/ waits for the owner.
 - When a bot or the owner sends you something, add it to /workspace/librarian/pending.md. Reply "noted" only to the owner.
 - If the owner asks you in this chat to file something now, run your daily-harvest steps now.
 - Stay quiet when there's nothing new.

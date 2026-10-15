@@ -4,6 +4,8 @@ The setup bot follows these steps.
 
 Each step checks first. If what it makes already exists, skip the step and tell the owner. So the whole procedure is safe to rerun, for example to add a bot later.
 
+Setup saves its progress and the owner's choices in `/workspace/setup/`. After each step, add a line such as `step 3 done` to `/workspace/setup/progress.md`. On a rerun, read that folder first, tell the owner in one line which steps are done, and continue from the first step that isn't. Never ask again for a choice saved there, unless the owner asks to change it. Still run each step's check, because something may have changed since.
+
 `<owner>` is the owner's GitHub username, as defined in [bots/README.md](bots/README.md). `<tz>` is their timezone, such as `Europe/Berlin`. Schedules in `bots/*.md` are cron in `<tz>`.
 
 The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may change. [kb/references/grok-bot-platform.md](kb/references/grok-bot-platform.md) has the sources.
@@ -14,11 +16,11 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
    In the optional Builders line, show `Coding group (claude, cursor, codex)` together, using [groups/coding.md](groups/coding.md). The owner can select the group or any subset of its members. Selecting `Coding` adds all three to the chosen bot list; selecting one adds only that member. They stay optional and have no routines.
 
-   If `/workspace/setup/owner.md` exists, show the owner its answers and the menu, and ask what to change. Otherwise send this welcome, with the menu in place of `<menu>`, and wait for the answers:
+   If `/workspace/setup/owner.md` exists, use its answers and don't ask the three questions again. If the owner asked to add or drop a bot, or to change an answer, change only that line. Otherwise send this welcome, with the menu in place of `<menu>`, and wait for the answers:
 
    ```text
    Hi. I'll set up a small team of Grok bots for you.
-   I'll make a private GitHub repo with each bot's instructions, and a private message board the bots share. After that, you change a bot by merging a pull request and replying "apply" here.
+   I'll make a private GitHub repo with each bot's instructions, and a private message board the bots share. After that, you change a bot by asking me or with a pull request. Low-risk changes go live by themselves, and I'll ask you about the rest.
    Three questions:
    1. Your GitHub username?
    2. Your timezone, such as Europe/Berlin?
@@ -75,14 +77,15 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
    If `connect` fails after a mistyped repo name and `/workspace/.agent-board/messages.jsonl.remote.json` doesn't exist, ask the owner whether to delete `/workspace/.agent-board`, then connect again with the right name.
 
-6. **Ask the owner to connect what the bots need.** Ask for all of these in one message, then wait until the owner says each is done. Skip any that's already done.
+6. **Ask the owner to connect what the bots need.** Ask for all of these in one message, then wait until the owner says each is done. Skip any that `progress.md` marks done or that you can see is done. Add a line to `progress.md` as each one is done, such as `gmail done`, so a rerun doesn't ask again.
    - **Board instructions for other coding agents, optional.** Once the board connection works, offer to add a short section to the owner's `CLAUDE.md` and `AGENTS.md`, following [the instruction-file setup guide](docs/agent-instructions-setup.md). They can choose user-level files, selected private projects, or skip. Show the paths and exact diff, preserve existing instructions, and update an existing board section instead of duplicating it. Private board routing belongs in private instructions. Record the choice in `/workspace/setup/agent-instructions.md`, so a rerun preserves it and does not ask again unless the owner wants a change. Skipping or a pending local-computer step does not block the rest of setup. Repository changes go through a PR; never edit a shared checkout or change computer permissions to install this section.
    - **GitHub events.** Connect the GitHub integration on the account that runs Grok Bot, and give it access to `<owner>/grok-bot-setup`. The `apply` routine's trigger needs it. It's separate from `gh` and from the GitHub plugin.
    - **Gmail, if they chose inbox.** In Grok Bot, open Connect apps and add Gmail. Then turn off the connector's send, reply and forward tools, and keep read, search, mark read, labels and drafts. inbox's rule against sending is only an instruction, and the switch enforces it.
    - **Google Calendar, if they chose scheduler.** In Grok Bot, open Connect apps and add Google Calendar. If it lists its tools, turn off deleting events and answering invites. scheduler's rules against both are only instructions.
    - **A computer, if they chose clerk.** clerk works on the owner's own Mac or Windows computer, not on this one. Ask them to connect it to Grok Bot. The docs don't explain how yet, so if they're stuck, point them to Settings > Computer in the desktop app. Then ask them to keep that computer's setting at Ask every time under Settings > Computer > Computers. Always allow would let every bot run commands there without asking.
    - **Coding tools, if they chose claude, cursor or codex.** Follow steps 1-4 of [Coding setup](docs/coding-group.md#setup). Verify the selected CLI and sign-in on each intended computer, record readiness, the default worker and review preference, and preserve existing choices on reruns. Grok's computer is the default; recommend a connected local computer when the project needs it, and confirm that project's first local choice once. Use its existing permissions. A missing CLI or sign-in leaves only that member pending; continue the rest of setup. Never install on a different computer, copy credentials or add paid access as a fallback. Skip this entire step when no coding member was chosen.
-   - **Repos, if they chose pr-watch, librarian or editor.** pr-watch always watches `<owner>/grok-bot-setup`, so leave that repo out. Ask which other repos pr-watch should watch, librarian should collect merged PRs from, and editor should find post ideas in, as `owner/repo`. Use one list for all of them unless the owner wants separate lists. If a list file exists, show it and ask whether to keep it. Write one repo per line, to the file of each chosen bot:
+   - **Automatic applies.** Low-risk bot changes go live with nobody watching, and a bot that replaces its own instructions may raise an approval card that expires after about 10 minutes. Suggest one narrow rule in Grok Bot under Settings > General > Auto-review, as an Allow automatically rule: `Allow automatically when a bot replaces its own instructions or routines with text that setup sent, and that text matches bots/<the bot's own name>.md on main in /workspace/grok-bot-setup.` Never suggest a broader rule. Auto Review still stops an action it finds another reason to stop. The rule is saved on the desktop where it's added, so the owner adds it again on another desktop. If they skip it, applies still work while they're nearby to answer the card.
+   - **Repos, if they chose pr-watch, librarian or editor.** pr-watch always watches `<owner>/grok-bot-setup`, so leave that repo out. Ask which other repos pr-watch should watch, librarian should collect merged PRs from, and editor should find post ideas in, as `owner/repo`. Use one list for all of them unless the owner wants separate lists. If a list file exists, keep it without asking. Write one repo per line, to the file of each chosen bot:
 
      ```sh
      mkdir -p /workspace/pr-watch /workspace/librarian /workspace/editor
@@ -118,7 +121,11 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 10. **Tell the owner.** Send one message with:
     - what you created, with links to both repos
     - what already existed and you skipped
-    - what's left, such as a connector, an approval card or a step that failed
+    - each chosen bot, one line each, as one of these. Save the same list in `/workspace/setup/status.md`.
+      - **ready**: the bot and its routines match its file, and everything it needs is connected.
+      - **onboarding needed**: it works once the owner does one thing, such as answering its first questions in its own chat, adding a connector or answering an approval card. Name the thing.
+      - **blocked**: it couldn't be created, or something it needs failed, such as a missing CLI or sign-in. Say what failed and the next step.
+    - what's left that isn't about one bot, such as GitHub events or the board
     - for Coding, which members and CLIs are ready on which computer, the default worker, and whether the group is ready or pending
-    - how to change a bot, which is to edit its file in `bots/`, open a PR, merge it, and reply "apply" here
+    - how to change a bot, which is to edit its file in `bots/` and open a PR. A low-risk change merges itself once its checks pass and goes live, with a line in the morning brief. A PR that adds a bot, a trigger or a power waits for the owner to merge it. Then setup asks them to reply "apply" or "revert", unless they asked setup for that change.
     - a reminder to check that Settings > General > Bot > Timezone shows `<tz>`

@@ -64,6 +64,12 @@ FLEET = (
 )
 
 
+class ConfigTest(unittest.TestCase):
+    def test_the_script_path_in_the_config_finds_the_repo_root(self):
+        self.assertEqual(bc.ROOT / bc.CONFIG["script"], SCRIPT.resolve())
+        self.assertTrue((bc.ROOT / "bots").is_dir())
+
+
 class ParseTest(unittest.TestCase):
     def setUp(self):
         with fleet_dir(*FLEET, readme="# Bot files\n\nNo instructions here.\n") as directory:
@@ -98,6 +104,16 @@ class ParseTest(unittest.TestCase):
         page = bc.render([bot])
         self.assertIn("### solo\n\nNo routines.\n", page)
         self.assertNotIn("section solo", page)
+
+    def test_creation_lines_are_not_read_here(self):
+        text = bot_file(default="no").replace("- **Default:** no", "- **Default:** no\n- **Created:** maybe\n- **ID:** (not created yet)")
+        with fleet_dir(text) as directory:
+            (bot,) = bc.load_bots(directory)
+        self.assertEqual((bot.optional, bot.created), (True, None))
+        page = bc.render([bot])
+        self.assertIn("### solo (optional)\n", page)
+        self.assertNotIn("Recorded setup", page)
+        self.assertNotIn("_planned", page)
 
     def test_schedule_none_and_capitalised_enabled(self):
         text = bot_file(routines=routines(routine(schedule="None", enabled="True")))
@@ -174,6 +190,10 @@ class ParseErrorTest(unittest.TestCase):
     def test_schedule_with_a_time_zone(self):
         self.assert_fails("solo: check: cannot read schedule 'CRON_TZ=UTC 0 9 * * *'",
                           bot_file(routines=routines(routine(schedule="`CRON_TZ=UTC 0 9 * * *`"))))
+
+    def test_reported_routine_with_a_time_zone(self):
+        self.assert_fails("solo: ping: schedule uses time zone UTC, expected none",
+                          bot_file(routines="## Routines (reported by bot)\n\n1. ping. Enabled. Cron 0 9 * * * (UTC). Pings.\n"))
 
     def test_day_of_month_with_day_of_week(self):
         self.assert_fails("solo: check: cron 0 9 1 * 1 restricts both day of month and day of week",

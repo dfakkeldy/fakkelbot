@@ -1,0 +1,31 @@
+{
+  "script": "scripts/bot_chart.py",
+  "out": "docs/bot-chart.md",
+  "readme": "scripts/README.md#bot_chartpy",
+  "title": "Bot chart",
+  "regenerate": "After you change a bot file, run `python3 {script}`.",
+  "intro": "Times are in the owner's timezone, like the schedules in the bot files. {readme} explains how the chart finds each arrow.",
+  "time_zone": null,
+  "owner_words": ["the owner"],
+  "github_owner": null,
+  "repo_systems": {},
+  "creation_status": false,
+  "categories": {
+    "Daily life": {"word": "green", "light": "#1a7f37", "dark": "#3fb950"},
+    "Work": {"word": "blue", "light": "#0969da", "dark": "#4493f8"},
+    "Builders": {"word": "purple", "light": "#8250df", "dark": "#ab7df8"},
+    "Content": {"word": "orange", "light": "#bc4c00", "dark": "#f0883e"}
+  },
+  "systems": {
+    "What each bot uses": [
+      {"key": "github", "label": "GitHub", "patterns": ["\\bgh\\b", "\\bGitHub\\b(?! username)"]},
+      {"key": "kb", "label": "knowledge base", "patterns": ["(?i)knowledge[- ]base", "/kb/", "\\bkb/AGENTS\\.md"]},
+      {"key": "board", "label": "agent board", "patterns": ["(?i)agent[- ]board", "\\bboard\\.py\\b", "(?i)\\bthe board\\b"]},
+      {"key": "gmail", "label": "Gmail", "patterns": ["\\bGmail\\b"]},
+      {"key": "gcal", "label": "Google Calendar", "patterns": ["Google Calendar"]},
+      {"key": "claude_cli", "label": "Claude Code", "patterns": ["\\bClaude Code\\b"]},
+      {"key": "cursor_cli", "label": "Cursor Agent", "patterns": ["\\bCursor Agent\\b"]},
+      {"key": "codex_cli", "label": "Codex CLI", "patterns": ["\\bCodex CLI\\b"]}
+    ]
+  }
+}

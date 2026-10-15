@@ -88,25 +88,30 @@ git:author	Jane Example
 
 ## bot_chart.py
 
-`bot_chart.py` reads every bot file in `bots/` and writes [the bot chart](../docs/bot-chart.md), `docs/bot-chart.md`. The page shows which bots hand work to which, what wakes each bot, which outside systems each bot uses, and when the scheduled routines run. GitHub draws its Mermaid charts.
+`bot_chart.py` reads every bot file in `bots/` and writes [the bot chart](../docs/bot-chart.md), `docs/bot-chart.md`. The page shows which bots hand work to which, what wakes each bot, which outside systems each bot uses, and when the scheduled routines run.
+
+- GitHub draws the hand-off and system charts from their Mermaid text. Each bot is coloured by its **Category**, and an optional bot is pale with a dashed outline. Hand-off arrows are grey, wake arrows are thick and amber, and arrows to outside systems are teal.
+- The schedule is two images the script draws, `docs/bot-chart-schedule-light.svg` and `docs/bot-chart-schedule-dark.svg`. GitHub shows the one that matches the reader's light or dark theme. Each enabled routine with a schedule gets a row, with a dot at each start time. The time axis covers only the hours that have runs, in 3-hour steps.
+
+To change the colours, edit `CATEGORY_COLOURS`, `ARROW_STYLES`, `LIGHT` and `DARK` near the top of the drawing code in `bot_chart.py`.
 
 ### Update the chart
 
-After you change a bot file, run this from the repo root and commit `docs/bot-chart.md` with your change.
+After you change a bot file, run this from the repo root. Then commit `docs/bot-chart.md` and both schedule images with your change.
 
 ```sh
 python3 scripts/bot_chart.py
 ```
 
-`--bots <folder>` reads another folder, and `--out <file>` writes another file. The script needs Python 3.9 or newer and nothing else. The same bot files always give the same page, byte for byte. If it can't read a bot file, it names the bot and the routine on stderr, exits with 1 and writes nothing.
+`--bots <folder>` reads another folder, and `--out <file>` writes the page to another file, with its images beside it. The script needs Python 3.9 or newer and nothing else. The same bot files always give the same files, byte for byte. If it can't read a bot file, it names the bot and the routine on stderr, exits with 1 and writes nothing.
 
-The `Bot chart` workflow runs on every push and PR, and never writes to the repo. It fails when the script can't read a bot file. It only warns when `docs/bot-chart.md` doesn't match `bots/`, so a bot change made on GitHub's website isn't blocked. Nothing regenerates the chart for you, because changes reach `main` only through a PR, as [decision 0001](../kb/decisions/0001-every-change-goes-through-a-pr.md) says.
+The `Bot chart` workflow runs on every push and PR, and never writes to the repo. It fails when the script can't read a bot file. It only warns when the page or an image doesn't match `bots/`, so a bot change made on GitHub's website isn't blocked. Nothing regenerates the chart for you, because changes reach `main` only through a PR, as [decision 0001](../kb/decisions/0001-every-change-goes-through-a-pr.md) says.
 
 ### How it reads a bot file
 
 It reads the format in [bots/README.md](../bots/README.md), and skips `bots/README.md` itself.
 
-- The bot's name is the first `#` heading. A bot whose **Default** is `no` gets a dashed border and "(optional)".
+- The bot's name is the first `#` heading. **Category** sets its colour, and a category outside the four in bots/README.md is grey. A bot whose **Default** is `no` is drawn as optional.
 - Its instructions are the text block under `## Instructions`.
 - Its routines are the `###` sections under `## Routines`. The script reads each one's **Schedule**, **Enabled** and **Trigger** fields above its text block, then the text block. A `group` trigger adds its cron schedules to the routine's schedule and its GitHub events to its triggers.
 - A bot with no `## Routines` section, or one with no `###` headings, such as a section that only says "None.", has no routines.

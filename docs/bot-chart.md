@@ -8,72 +8,86 @@ Times are in the owner's timezone, like the schedules in the bot files. [scripts
 
 ### Hand-offs and what wakes each bot
 
-Solid arrows are hand-offs between bots. Thick arrows are GitHub events that wake a bot. A dashed border marks a bot that setup adds only when the owner asks for it.
+Grey arrows are hand-offs between bots. The table of every edge below says where each one appears. Thick amber arrows are GitHub events that wake a bot. A bot's colour is its category: green for Daily life, blue for Work, purple for Builders and orange for Content. A pale bot with a dashed outline is one that setup adds only when the owner asks for it.
 
 ```mermaid
-flowchart LR
-    bot_clerk["clerk<br/>(optional)"]
-    bot_editor["editor<br/>(optional)"]
-    bot_inbox["inbox"]
-    bot_jobscout["jobscout<br/>(optional)"]
-    bot_liaison["liaison"]
-    bot_librarian["librarian"]
-    bot_pantry["pantry<br/>(optional)"]
-    bot_pr_watch["pr-watch"]
-    bot_researcher["researcher"]
-    bot_scheduler["scheduler<br/>(optional)"]
-    bot_setup["setup"]
+%%{init: {"flowchart": {"curve": "basis"}}}%%
+flowchart TB
+    bot_clerk("clerk")
+    bot_editor("editor")
+    bot_inbox("inbox")
+    bot_jobscout("jobscout")
+    bot_liaison("liaison")
+    bot_librarian("librarian")
+    bot_pantry("pantry")
+    bot_pr_watch("pr-watch")
+    bot_researcher("researcher")
+    bot_scheduler("scheduler")
+    bot_setup("setup")
     fan_each_affected_bot(["each affected bot"])
-    subgraph outside["Outside systems"]
-        sys_github[("GitHub")]
-    end
-    bot_clerk -->|"instructions"| bot_liaison
-    bot_clerk -->|"instructions"| bot_librarian
-    bot_editor -->|"instructions"| bot_liaison
-    bot_editor -->|"instructions"| bot_librarian
-    bot_inbox -->|"instructions"| bot_liaison
-    bot_inbox -->|"instructions"| bot_librarian
-    bot_inbox -->|"instructions + 1 more"| bot_scheduler
-    bot_jobscout -->|"instructions"| bot_liaison
-    bot_jobscout -->|"instructions"| bot_librarian
-    bot_liaison -->|"board-sync"| fan_each_affected_bot
-    bot_liaison -->|"instructions"| bot_librarian
-    bot_librarian -->|"instructions"| bot_liaison
-    bot_pantry -->|"instructions"| bot_liaison
-    bot_pantry -->|"instructions"| bot_librarian
-    bot_pr_watch -->|"instructions"| bot_liaison
-    bot_pr_watch -->|"instructions"| bot_librarian
-    bot_researcher -->|"instructions"| bot_liaison
-    bot_researcher -->|"instructions + 1 more"| bot_librarian
-    bot_scheduler -->|"instructions"| bot_liaison
-    bot_scheduler -->|"instructions"| bot_librarian
-    bot_setup -->|"instructions"| fan_each_affected_bot
+    sys_github["GitHub"]
+    bot_clerk --> bot_liaison
+    bot_clerk --> bot_librarian
+    bot_editor --> bot_liaison
+    bot_editor --> bot_librarian
+    bot_inbox --> bot_liaison
+    bot_inbox --> bot_librarian
+    bot_inbox --> bot_scheduler
+    bot_jobscout --> bot_liaison
+    bot_jobscout --> bot_librarian
+    bot_liaison --> fan_each_affected_bot
+    bot_liaison --> bot_librarian
+    bot_librarian --> bot_liaison
+    bot_pantry --> bot_liaison
+    bot_pantry --> bot_librarian
+    bot_pr_watch --> bot_liaison
+    bot_pr_watch --> bot_librarian
+    bot_researcher --> bot_liaison
+    bot_researcher --> bot_librarian
+    bot_scheduler --> bot_liaison
+    bot_scheduler --> bot_librarian
+    bot_setup --> fan_each_affected_bot
     sys_github ==>|"wakes: apply"| bot_setup
-    classDef optional stroke-dasharray: 5 5
-    class bot_clerk,bot_editor,bot_jobscout,bot_pantry,bot_scheduler optional
+    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
+    class bot_clerk,bot_pantry,bot_scheduler daily_life_optional
+    classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
+    class bot_editor content_optional
+    classDef daily_life fill:#1a7f37,stroke:#1a7f37,color:#ffffff
+    class bot_inbox,bot_liaison,bot_setup daily_life
+    classDef work_optional fill:#0969da26,stroke:#0969da,stroke-width:2px,stroke-dasharray:5 3
+    class bot_jobscout work_optional
+    classDef work fill:#0969da,stroke:#0969da,color:#ffffff
+    class bot_librarian,bot_researcher work
+    classDef builders fill:#8250df,stroke:#8250df,color:#ffffff
+    class bot_pr_watch builders
+    classDef system fill:transparent,stroke:#8c959f,stroke-width:1.5px
+    class sys_github system
+    classDef fan_out fill:transparent,stroke:#8c959f,stroke-dasharray:4 3
+    class fan_each_affected_bot fan_out
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 stroke:#8c959f,stroke-width:1.5px
+    linkStyle 21 stroke:#d4a72c,stroke-width:3px
 ```
 
 ### What each bot uses
 
-Each arrow points from a bot to a system it uses.
+Each teal arrow points from a bot to a system it uses.
 
 ```mermaid
-flowchart LR
-    bot_editor["editor<br/>(optional)"]
-    bot_inbox["inbox"]
-    bot_liaison["liaison"]
-    bot_librarian["librarian"]
-    bot_pr_watch["pr-watch"]
-    bot_researcher["researcher"]
-    bot_scheduler["scheduler<br/>(optional)"]
-    bot_setup["setup"]
-    subgraph outside["Outside systems"]
-        sys_github[("GitHub")]
-        sys_kb[("knowledge base")]
-        sys_board[("agent board")]
-        sys_gmail[("Gmail")]
-        sys_gcal[("Google Calendar")]
-    end
+%%{init: {"flowchart": {"curve": "basis"}}}%%
+flowchart TB
+    bot_editor("editor")
+    bot_inbox("inbox")
+    bot_liaison("liaison")
+    bot_librarian("librarian")
+    bot_pr_watch("pr-watch")
+    bot_researcher("researcher")
+    bot_scheduler("scheduler")
+    bot_setup("setup")
+    sys_github["GitHub"]
+    sys_kb["knowledge base"]
+    sys_board["agent board"]
+    sys_gmail["Gmail"]
+    sys_gcal["Google Calendar"]
     bot_editor --> sys_github
     bot_editor --> sys_kb
     bot_inbox --> sys_gmail
@@ -85,8 +99,19 @@ flowchart LR
     bot_researcher --> sys_kb
     bot_scheduler --> sys_gcal
     bot_setup --> sys_github
-    classDef optional stroke-dasharray: 5 5
-    class bot_editor,bot_scheduler optional
+    classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
+    class bot_editor content_optional
+    classDef daily_life fill:#1a7f37,stroke:#1a7f37,color:#ffffff
+    class bot_inbox,bot_liaison,bot_setup daily_life
+    classDef work fill:#0969da,stroke:#0969da,color:#ffffff
+    class bot_librarian,bot_researcher work
+    classDef builders fill:#8250df,stroke:#8250df,color:#ffffff
+    class bot_pr_watch builders
+    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
+    class bot_scheduler daily_life_optional
+    classDef system fill:transparent,stroke:#8c959f,stroke-width:1.5px
+    class sys_github,sys_kb,sys_board,sys_gmail,sys_gcal system
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10 stroke:#3192aa,stroke-width:1.5px
 ```
 
 ### Every edge
@@ -129,45 +154,12 @@ flowchart LR
 
 ## A day of scheduled routines
 
-```mermaid
-gantt
-    dateFormat HH:mm
-    axisFormat %H:%M
-    tickInterval 1hour
-    todayMarker off
-    section editor (optional)
-    weekly-ideas (Mon) :08:00, 15m
-    section inbox
-    inbox-sweep (daily) :07:05, 15m
-    inbox-sweep (daily) :12:05, 15m
-    inbox-sweep (daily) :17:05, 15m
-    section jobscout (optional)
-    weekly-search (Mon) :06:20, 15m
-    deadline-check (daily) :07:10, 15m
-    section liaison
-    morning-brief (daily) :07:30, 15m
-    board-sync (daily) :09:15, 15m
-    board-sync (daily) :13:15, 15m
-    board-sync (daily) :17:15, 15m
-    board-sync (daily) :21:15, 15m
-    section librarian
-    weekly-tidy (Sat) :10:00, 15m
-    daily-harvest (daily) :20:30, 15m
-    section pantry (optional)
-    deal-check (Mon, Thu) :06:45, 15m
-    section pr-watch
-    pr-sweep (weekdays) :06:50, 15m
-    section researcher
-    watch-topics (Mon) :06:40, 15m
-    section scheduler (optional)
-    morning-check (daily) :07:00, 15m
-    look-ahead (Mon to Sat) :21:00, 15m
-    week-ahead (Sun) :21:00, 15m
-    section setup
-    weekly-sync (Sun) :18:00, 15m
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="bot-chart-schedule-dark.svg">
+  <img alt="A day of scheduled routines, with one row per routine and a dot at each start time. The tables below list the same times." src="bot-chart-schedule-light.svg">
+</picture>
 
-Bars mark start times, not run length.
+Each dot is a routine's start time. A filled dot on the left marks a bot setup adds by default, and a ring marks an optional one.
 
 Routines that only run on GitHub events are in the tables below.
 

@@ -28,6 +28,7 @@ You can also add these:
 - **jobscout** finds open jobs, contracts and grants that fit you, and reminds you before their deadlines.
 - **pantry** keeps your shopping list and tells you about real deals on what you buy.
 - **editor** suggests posts about what you shipped and drafts the ones you pick.
+- **clerk** finds and files the files on your own computer when you ask. It logs every move so you can undo it, and never deletes anything.
 
 ## How it works
 
@@ -41,6 +42,7 @@ The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when
 - Bots treat email, PRs, web pages and other bots' messages as data, never as instructions.
 - Most bots only read. librarian and the weekly sync open PRs but never merge them. No bot buys anything, and nothing posts or sends for you without your approval of that one item. scheduler adds a calendar event only after you say yes to that one suggestion.
 - Only your "apply" in the setup bot's chat changes a bot. A PR, a comment or another bot's message never counts.
+- clerk is the only bot that works on your own computer. Each command it runs there asks you first, unless you set that computer to Always allow, which lets every bot in.
 - A rule in a bot's instructions isn't enforced. Where an app has a switch, setup asks you to use it, such as turning off Gmail's send tools.
 
 ## Install without the template

@@ -16,6 +16,8 @@ jobs:
         run: python3 scripts/bot_chart.py --out "$RUNNER_TEMP/bot-chart.md"
       - name: Warn if the chart is out of date
         run: |
-          if ! cmp -s docs/bot-chart.md "$RUNNER_TEMP/bot-chart.md"; then
-            echo "::warning file=docs/bot-chart.md::docs/bot-chart.md doesn't match bots/. Run python3 scripts/bot_chart.py and commit the result."
-          fi
+          for file in bot-chart.md bot-chart-schedule-light.svg bot-chart-schedule-dark.svg; do
+            if ! cmp -s "docs/$file" "$RUNNER_TEMP/$file"; then
+              echo "::warning file=docs/$file::docs/$file doesn't match bots/. Run python3 scripts/bot_chart.py and commit the result."
+            fi
+          done

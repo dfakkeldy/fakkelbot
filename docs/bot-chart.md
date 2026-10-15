@@ -57,6 +57,7 @@ flowchart TB
     bot_scheduler --> bot_liaison
     bot_scheduler --> bot_librarian
     bot_setup --> fan_each_affected_bot
+    bot_setup --> bot_liaison
     sys_github ==>|"wakes: apply"| bot_setup
     classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
     class bot_claude,bot_codex,bot_cursor builders_optional
@@ -76,8 +77,8 @@ flowchart TB
     class sys_github system
     classDef fan_out fill:transparent,stroke:#8c959f,stroke-dasharray:4 3
     class fan_each_affected_bot fan_out
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27 stroke:#8c959f,stroke-width:1.5px
-    linkStyle 28 stroke:#d4a72c,stroke-width:3px
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28 stroke:#8c959f,stroke-width:1.5px
+    linkStyle 29 stroke:#d4a72c,stroke-width:3px
 ```
 
 ### What each bot uses
@@ -175,6 +176,7 @@ flowchart TB
 | scheduler | liaison | hands off to | instructions |
 | scheduler | librarian | hands off to | instructions |
 | setup | each affected bot | hands off to | instructions |
+| setup | liaison | hands off to | instructions |
 | GitHub | setup | wakes | apply |
 | claude | GitHub | uses | instructions |
 | claude | agent board | uses | instructions |

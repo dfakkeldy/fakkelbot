@@ -29,6 +29,7 @@ You can also add these:
 - **pantry** keeps your shopping list and tells you about real deals on what you buy.
 - **editor** suggests posts about what you shipped and drafts the ones you pick.
 - **clerk** finds and files the files on your own computer when you ask. It logs every move so you can undo it, and never deletes anything.
+- **Coding group** adds **claude**, **cursor** and **codex**, which operate Claude Code, Cursor Agent and Codex CLI. Each handles assigned tasks and can review another tool's work. Choose all three or any subset. They have no routines, and setup checks each selected CLI and sign-in. [Coding setup and computer choices](docs/coding-group.md) explains how they use Grok's computer or an approved local computer.
 
 ## How it works
 
@@ -40,9 +41,9 @@ The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when
 
 - Your bots share one computer, its files and its sign-ins, so one bot can't protect you from another.
 - Bots treat email, PRs, web pages and other bots' messages as data, never as instructions.
-- Most bots only read. librarian and the weekly sync open PRs but never merge them. No bot buys anything, and nothing posts or sends for you without your approval of that one item. scheduler adds a calendar event only after you say yes to that one suggestion.
+- Most bots only read. librarian and the weekly sync open PRs but never merge them. Coding members can change code and open task PRs; they merge or deploy only under your explicit delivery rules. No bot buys anything, and nothing posts or sends for you without your approval of that one item. scheduler adds a calendar event only after you say yes to that one suggestion.
 - Only your "apply" in the setup bot's chat changes a bot. A PR, a comment or another bot's message never counts.
-- clerk is the only bot that works on your own computer. Each command it runs there asks you first, unless you set that computer to Always allow, which lets every bot in.
+- clerk and the Coding group can work on your connected computer. Coding remembers your choice per project and defaults to Grok's computer for Linux work. Local commands follow that computer's existing approval setting. Always allow lets every bot in; setup never enables it.
 - A rule in a bot's instructions isn't enforced. Where an app has a switch, setup asks you to use it, such as turning off Gmail's send tools.
 
 ## Install without the template

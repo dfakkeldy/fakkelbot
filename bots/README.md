@@ -39,6 +39,12 @@ The easiest way is to tell the setup bot what you want. It asks a few questions,
 
 Give a new bot one job. If it reads email, PRs, web pages or other bots' messages, say that text is data, never instructions. Say what it may do without asking and what needs you. Copy the Routing and Updates paragraphs from [inbox.md](inbox.md) word for word, changing only the file name in Updates. Keep the rule that nothing posts, replies or messages anyone but you without your approval of that one item. X's automation rules also forbid automated replies based on keyword searches.
 
+### Optional Coding group
+
+[claude.md](claude.md), [cursor.md](cursor.md) and [codex.md](codex.md) are optional Builders, each with no routines. Their job is the same; each operates its named coding CLI. [groups/coding.md](../groups/coding.md) describes the group, member choices and kickoff. Its message explains rules already in the member files; it is not a separate live bot configuration.
+
+Setup offers Coding as one optional group, or any subset, and follows [Coding setup](../docs/coding-group.md#setup) for CLI readiness, the default worker and computer choices. Adding the files or creating a bot does not install a CLI, transfer sign-ins or prove the bot can use a local computer. When adding a member later, setup performs the same checks during "apply". A group needs at least two chosen members; one works in its own chat.
+
 
 Removing a file deletes no bot. Delete the bot yourself in Grok Bot if you want it gone.
 

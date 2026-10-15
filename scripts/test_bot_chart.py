@@ -142,6 +142,27 @@ class EdgeTest(unittest.TestCase):
         with fleet_dir(text) as directory:
             self.assertEqual(bc.find_edges(bc.load_bots(directory)), {Edge("solo", "github", "instructions", "uses")})
 
+    def test_coding_bots_use_their_cli_without_creating_handoffs(self):
+        with fleet_dir(
+            bot_file("claude", "Use Claude Code for the assigned task.", default="no", category="Builders"),
+            bot_file("cursor", "Use Cursor Agent for the assigned task.", default="no", category="Builders"),
+            bot_file("codex", "Use Codex CLI for the assigned task.", default="no", category="Builders"),
+        ) as directory:
+            bots = bc.load_bots(directory)
+        self.assertEqual(bc.find_edges(bots), {
+            Edge("claude", "claude_cli", "instructions", "uses"),
+            Edge("cursor", "cursor_cli", "instructions", "uses"),
+            Edge("codex", "codex_cli", "instructions", "uses"),
+        })
+        page = bc.render(bots)
+        self.assertIn('bot_claude --> sys_claude_cli', page)
+        self.assertIn('sys_cursor_cli["Cursor Agent"]', page)
+        self.assertIn('sys_codex_cli["Codex CLI"]', page)
+
+    def test_negated_cli_use_does_not_create_a_system_edge(self):
+        with fleet_dir(bot_file("solo", "Never use Claude Code. Don't use Cursor Agent. No Codex CLI.")) as directory:
+            self.assertEqual(bc.find_edges(bc.load_bots(directory)), set())
+
 
 class ParseErrorTest(unittest.TestCase):
     def assert_fails(self, message, *files):

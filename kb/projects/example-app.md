@@ -22,4 +22,4 @@ As of 2026-10-14, version 1.2 is in testing, and the release is planned for Nove
 
 ## Related notes
 
-- [Every change goes through a PR](../decisions/0001-every-change-goes-through-a-pr.md)
+- [CI decides what merges](../decisions/0002-ci-decides-what-merges.md)

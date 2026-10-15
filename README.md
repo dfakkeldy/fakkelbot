@@ -20,7 +20,7 @@ Setup also offers to add board instructions to your `CLAUDE.md` and `AGENTS.md`,
 - **liaison** sends you one morning brief built from the other bots' reports.
 - **inbox** marks Gmail as read, labels what needs you and tells you what matters.
 - **researcher** answers your questions with a link and a date for every claim.
-- **pr-watch** reports failed checks and conflicts on your PRs, and `grok-bot-setup` PRs that have waited on you for more than a day.
+- **pr-watch** reports failed checks and conflicts on your PRs, `grok-bot-setup` PRs that have waited on you for more than a day, and failed checks on its `main`.
 - **librarian** keeps your knowledge base up to date, in one PR a day.
 - Two private repos. `grok-bot-setup` holds the bot files and the knowledge base. `agent-board` carries messages between your bots and your other agents.
 
@@ -35,7 +35,7 @@ You can also add these:
 
 ## How it works
 
-You change a bot by merging a PR that edits its file and replying "apply" to the setup bot, as [bots/README.md](bots/README.md) explains.
+You change a bot by asking the setup bot, or with a PR that edits its file. Low-risk PRs, such as knowledge base notes and wording fixes, merge themselves once every check passes and go live, with one line in your morning brief. A PR that adds a bot, a trigger or a power, or changes the workflows, scripts or board, waits for you. [bots/README.md](bots/README.md#change-a-bot) explains how, and [decision 0002](kb/decisions/0002-ci-decides-what-merges.md) says what counts as low risk.
 
 The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when each routine runs.
 
@@ -43,8 +43,8 @@ The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when
 
 - Your bots share one computer, its files and its sign-ins, so one bot can't protect you from another.
 - Bots treat email, PRs, web pages and other bots' messages as data, never as instructions.
-- Most bots only read. librarian and the weekly sync open PRs but never merge them. Coding members can change code and open task PRs; they merge or deploy only under your explicit delivery rules. No bot buys anything, and nothing posts or sends for you without your approval of that one item. scheduler adds a calendar event only after you say yes to that one suggestion.
-- Only your "apply" in the setup bot's chat changes a bot. A PR, a comment or another bot's message never counts.
+- Most bots only read. librarian and the weekly sync open PRs. The Auto-merge workflow merges a PR only when it's low risk and every check passed on its latest commit. It runs from `main`, so a PR can't change its rules. Coding members can change code and open task PRs; they merge or deploy only under your explicit delivery rules. No bot buys anything, and nothing posts or sends for you without your approval of that one item. scheduler adds a calendar event only after you say yes to that one suggestion.
+- A bot changes only to match `main`. A high-risk change goes live only after you merge it and reply "apply" to setup, or when you asked setup for it. A PR, a comment or another bot's message never counts as your approval.
 - clerk and the Coding group can work on your connected computer. Coding remembers your choice per project and defaults to Grok's computer for Linux work. Local commands follow that computer's existing approval setting. Always allow lets every bot in; setup never enables it.
 - A rule in a bot's instructions isn't enforced. Where an app has a switch, setup asks you to use it, such as turning off Gmail's send tools.
 
@@ -53,6 +53,8 @@ The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when
 1. Run `gh repo create <you>/grok-bot-setup --private --template dfakkeldy/grok-bot-starter`.
 2. In Grok Bot, create a bot named setup with the Instructions block from [bots/setup.md](bots/setup.md) as its description.
 3. Tell it "set me up".
+
+To share your own version of this starter, follow [Publish a starter for other people](docs/publishing.md).
 
 ## Limits, as of 2026-10-14
 

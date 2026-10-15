@@ -1,13 +1,13 @@
 ---
 type: decision
 title: Every change goes through a PR
-description: Changes to bots/ and kb/ go through a pull request, and live bots change only after the owner replies "apply".
+description: Replaced by 0002. Changes to bots/ and kb/ went through a pull request, and live bots changed only after the owner replied "apply".
 updated: 2026-10-14
 ---
 
 # 0001. Every change goes through a PR
 
-Accepted on 2026-10-14.
+Accepted on 2026-10-14. Replaced on 2026-10-14 by [0002. CI decides what merges](0002-ci-decides-what-merges.md), which lets low-risk PRs merge themselves and go live.
 
 ## Context
 

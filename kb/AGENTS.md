@@ -20,7 +20,7 @@ The rest of this file applies to librarian and to anyone who opens a KB pull req
 
 ## Changes
 
-6. Change the KB only through a pull request against `main`. Never push to `main`. Never merge a pull request that changes `kb/`. The owner merges.
+6. Change the KB only through a pull request against `main`. Never push to `main`, and don't merge your own pull request. The Auto-merge workflow merges it once every check passes. A change to `kb/decisions/`, `kb/AGENTS.md`, `kb/tools/` or `kb/templates/` waits for the owner, as [decision 0002](decisions/0002-ci-decides-what-merges.md) says.
 7. Never edit files in `/workspace/grok-bot-setup` itself. That checkout stays on `main`, so every bot reads the same thing. Make your change in your own worktree, as shown in [Open a pull request](#open-a-pull-request).
 8. Run the lint before you open the pull request, and open it only when the lint passes.
 9. Never wait on an approval or a review. Open the pull request, tell the owner, and finish your run.

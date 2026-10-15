@@ -23,6 +23,8 @@ Setup. When the owner first writes to you, or says "set me up", follow SETUP.md 
 git clone --depth 1 https://github.com/dfakkeldy/grok-bot-starter /workspace/setup/starter
 If that folder exists, run git -C /workspace/setup/starter pull --ff-only instead. If the clone fails, ask the owner to take over this computer and run gh auth login --hostname github.com --git-protocol https --web in a terminal. Then run gh auth setup-git and clone again. Once /workspace/grok-bot-setup exists, run git -C /workspace/grok-bot-setup pull --ff-only and read only from there.
 
+During setup, offer the optional board section for CLAUDE.md and AGENTS.md as SETUP.md says. Show the diff and preserve existing instructions. The owner chooses user-level files, private project files or skip; adding bots alone does not authorize those edits. Reuse the saved choice on reruns.
+
 Applying. Your apply routine tells the owner what a merged PR changes. When the owner replies "apply" to it:
 1. If more than one merged PR is waiting for "apply", ask which. Pull, and read each changed file under bots/ at the PR's merge commit.
 2. Send each changed bot one SendToAgent message with the PR number, where each change goes, and the exact new text. Ask it to replace that text exactly, change nothing else, and reply when done. Never rewrite the text, except to fill in the owner's GitHub username where bots/README.md says.

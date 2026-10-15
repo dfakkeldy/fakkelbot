@@ -12,9 +12,13 @@ Solid arrows are hand-offs between bots. Thick arrows are GitHub events that wak
 
 ```mermaid
 flowchart LR
+    bot_clerk["clerk<br/>(optional)"]
+    bot_editor["editor<br/>(optional)"]
     bot_inbox["inbox"]
+    bot_jobscout["jobscout<br/>(optional)"]
     bot_liaison["liaison"]
     bot_librarian["librarian"]
+    bot_pantry["pantry<br/>(optional)"]
     bot_pr_watch["pr-watch"]
     bot_researcher["researcher"]
     bot_scheduler["scheduler<br/>(optional)"]
@@ -23,12 +27,20 @@ flowchart LR
     subgraph outside["Outside systems"]
         sys_github[("GitHub")]
     end
+    bot_clerk -->|"instructions"| bot_liaison
+    bot_clerk -->|"instructions"| bot_librarian
+    bot_editor -->|"instructions"| bot_liaison
+    bot_editor -->|"instructions"| bot_librarian
     bot_inbox -->|"instructions"| bot_liaison
     bot_inbox -->|"instructions"| bot_librarian
     bot_inbox -->|"instructions + 1 more"| bot_scheduler
+    bot_jobscout -->|"instructions"| bot_liaison
+    bot_jobscout -->|"instructions"| bot_librarian
     bot_liaison -->|"board-sync"| fan_each_affected_bot
     bot_liaison -->|"instructions"| bot_librarian
     bot_librarian -->|"instructions"| bot_liaison
+    bot_pantry -->|"instructions"| bot_liaison
+    bot_pantry -->|"instructions"| bot_librarian
     bot_pr_watch -->|"instructions"| bot_liaison
     bot_pr_watch -->|"instructions"| bot_librarian
     bot_researcher -->|"instructions"| bot_liaison
@@ -38,7 +50,7 @@ flowchart LR
     bot_setup -->|"instructions"| fan_each_affected_bot
     sys_github ==>|"wakes: apply"| bot_setup
     classDef optional stroke-dasharray: 5 5
-    class bot_scheduler optional
+    class bot_clerk,bot_editor,bot_jobscout,bot_pantry,bot_scheduler optional
 ```
 
 ### What each bot uses
@@ -47,6 +59,7 @@ Each arrow points from a bot to a system it uses.
 
 ```mermaid
 flowchart LR
+    bot_editor["editor<br/>(optional)"]
     bot_inbox["inbox"]
     bot_liaison["liaison"]
     bot_librarian["librarian"]
@@ -61,6 +74,8 @@ flowchart LR
         sys_gmail[("Gmail")]
         sys_gcal[("Google Calendar")]
     end
+    bot_editor --> sys_github
+    bot_editor --> sys_kb
     bot_inbox --> sys_gmail
     bot_liaison --> sys_board
     bot_librarian --> sys_github
@@ -71,19 +86,27 @@ flowchart LR
     bot_scheduler --> sys_gcal
     bot_setup --> sys_github
     classDef optional stroke-dasharray: 5 5
-    class bot_scheduler optional
+    class bot_editor,bot_scheduler optional
 ```
 
 ### Every edge
 
 | From | To | Kind | Where |
 |---|---|---|---|
+| clerk | liaison | hands off to | instructions |
+| clerk | librarian | hands off to | instructions |
+| editor | liaison | hands off to | instructions |
+| editor | librarian | hands off to | instructions |
 | inbox | liaison | hands off to | instructions |
 | inbox | librarian | hands off to | instructions |
 | inbox | scheduler | hands off to | instructions, inbox-sweep |
+| jobscout | liaison | hands off to | instructions |
+| jobscout | librarian | hands off to | instructions |
 | liaison | each affected bot | hands off to | board-sync |
 | liaison | librarian | hands off to | instructions |
 | librarian | liaison | hands off to | instructions |
+| pantry | liaison | hands off to | instructions |
+| pantry | librarian | hands off to | instructions |
 | pr-watch | liaison | hands off to | instructions |
 | pr-watch | librarian | hands off to | instructions |
 | researcher | liaison | hands off to | instructions |
@@ -92,6 +115,8 @@ flowchart LR
 | scheduler | librarian | hands off to | instructions |
 | setup | each affected bot | hands off to | instructions |
 | GitHub | setup | wakes | apply |
+| editor | GitHub | uses | weekly-ideas |
+| editor | knowledge base | uses | instructions |
 | inbox | Gmail | uses | instructions, inbox-sweep |
 | liaison | agent board | uses | instructions, board-sync |
 | librarian | GitHub | uses | daily-harvest |
@@ -110,10 +135,15 @@ gantt
     axisFormat %H:%M
     tickInterval 1hour
     todayMarker off
+    section editor (optional)
+    weekly-ideas (Mon) :08:00, 15m
     section inbox
     inbox-sweep (daily) :07:05, 15m
     inbox-sweep (daily) :12:05, 15m
     inbox-sweep (daily) :17:05, 15m
+    section jobscout (optional)
+    weekly-search (Mon) :06:20, 15m
+    deadline-check (daily) :07:10, 15m
     section liaison
     morning-brief (daily) :07:30, 15m
     board-sync (daily) :09:15, 15m
@@ -123,6 +153,8 @@ gantt
     section librarian
     weekly-tidy (Sat) :10:00, 15m
     daily-harvest (daily) :20:30, 15m
+    section pantry (optional)
+    deal-check (Mon, Thu) :06:45, 15m
     section pr-watch
     pr-sweep (weekdays) :06:50, 15m
     section researcher
@@ -141,11 +173,28 @@ Routines that only run on GitHub events are in the tables below.
 
 ## Routines by bot
 
+### clerk (optional)
+
+No routines.
+
+### editor (optional)
+
+| Routine | Schedule | Trigger | Enabled |
+|---|---|---|---|
+| weekly-ideas | Mondays at 08:00 | none | yes |
+
 ### inbox
 
 | Routine | Schedule | Trigger | Enabled |
 |---|---|---|---|
 | inbox-sweep | daily at 07:05, 12:05, 17:05 | none | yes |
+
+### jobscout (optional)
+
+| Routine | Schedule | Trigger | Enabled |
+|---|---|---|---|
+| weekly-search | Mondays at 06:20 | none | yes |
+| deadline-check | daily at 07:10 | none | yes |
 
 ### liaison
 
@@ -160,6 +209,12 @@ Routines that only run on GitHub events are in the tables below.
 |---|---|---|---|
 | daily-harvest | daily at 20:30 | none | yes |
 | weekly-tidy | Saturdays at 10:00 | none | yes |
+
+### pantry (optional)
+
+| Routine | Schedule | Trigger | Enabled |
+|---|---|---|---|
+| deal-check | Mon and Thu at 06:45 | none | yes |
 
 ### pr-watch
 

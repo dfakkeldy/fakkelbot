@@ -8,7 +8,7 @@ Setup saves its progress and the owner's choices in `/workspace/setup/`. After e
 
 `<owner>` is the owner's GitHub username, as defined in [bots/README.md](bots/README.md). `<tz>` is their timezone, such as `Europe/Berlin`. Schedules in `bots/*.md` are cron in `<tz>`.
 
-The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may change. [kb/references/grok-bot-platform.md](kb/references/grok-bot-platform.md) has the sources.
+The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may change. [kb/bundle/references/grok-bot-platform.md](kb/bundle/references/grok-bot-platform.md) has the sources.
 
 ## Steps
 

@@ -1,8 +1,11 @@
 ---
-type: project
+type: Project
 title: Project name
 description: One sentence on what the project is.
-updated: YYYY-MM-DD
+resource: https://github.com/owner/repo
+tags:
+  - topic-word
+timestamp: YYYY-MM-DDTHH:MM:SS+00:00
 ---
 
 # Project name
@@ -18,6 +21,6 @@ Two or three sentences on what the project is and who it's for.
 
 As of YYYY-MM-DD, a few lines on where the project stands. Day-to-day progress goes on the board.
 
-## Related notes
+## Related pages
 
 - [A related decision](../decisions/0002-ci-decides-what-merges.md)

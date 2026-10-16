@@ -1,8 +1,12 @@
 ---
-type: reference
+type: Reference
 title: Grok Bot platform
 description: How Grok Bot runs bots, routines, approvals and templates, and the limits every bot works within.
-updated: 2026-10-14
+resource: https://docs.x.ai/grok-bot
+tags:
+  - grok-bot
+  - platform
+timestamp: 2026-10-14T20:58:27-03:00
 ---
 
 # Grok Bot platform
@@ -71,7 +75,7 @@ Every fact below was checked against its source on 2026-10-14, unless the line g
 - Without a connected X account, bots can search and read public X content only. The X plugin adds DMs, bookmarks, the home timeline and likes ([computer and apps](https://docs.x.ai/grok-bot/computer-and-apps)).
 - X's developer guidelines don't allow an app that auto-replies to anyone who mentions a keyword. AI-generated replies need X's approval before deployment. Automated accounts must turn on the "Automated" profile label and honor opt-out requests at once ([X developer guidelines](https://docs.x.com/developer-guidelines)). So no starter bot posts, replies or sends a message to anyone but its owner without the owner's approval for that item.
 
-## Sources
+## Citations
 
 The docs.x.ai and docs.x.com pages show no date. Each source was checked on 2026-10-14.
 

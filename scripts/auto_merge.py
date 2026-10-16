@@ -47,7 +47,7 @@ PATH_RULES: Tuple[Tuple[str, str, str], ...] = (
     (".github/**", HIGH, "changes the workflows"),
     ("scripts/**", HIGH, "changes the scripts"),
     ("board/**", HIGH, "changes the board client"),
-    ("kb/decisions/**", HIGH, "changes a KB decision"),
+    ("kb/bundle/decisions/**", HIGH, "changes a KB decision"),
     ("kb/AGENTS.md", HIGH, "changes the KB rules for bots"),
     ("kb/tools/**", HIGH, "changes the KB lint"),
     ("kb/templates/**", HIGH, "changes the KB templates"),

@@ -24,7 +24,7 @@ Each file here holds one bot's exact instructions and routines. The setup bot cr
 The easiest way is to tell the setup bot what to change. It works out the change with you, opens the PR and makes it live once the checks pass. To do it yourself:
 
 1. Edit the bot's file on a branch and open a PR.
-2. The Auto-merge workflow looks at what the PR changes. A low-risk change, such as clearer wording, merges itself once every check passes. A PR that adds a bot, a routine, a trigger or a power, or changes setup's own file, waits for you to merge it. [Decision 0002](../kb/decisions/0002-ci-decides-what-merges.md) has the full list. Add the `hold` label to a PR to keep it for yourself.
+2. The Auto-merge workflow looks at what the PR changes. A low-risk change, such as clearer wording, merges itself once every check passes. A PR that adds a bot, a routine, a trigger or a power, or changes setup's own file, waits for you to merge it. [Decision 0002](../kb/bundle/decisions/0002-ci-decides-what-merges.md) has the full list. Add the `hold` label to a PR to keep it for yourself.
 3. When the PR merges, the setup bot's `apply` routine brings the changed bots in line with `main`.
    - If Auto-merge merged it, setup applies it at once and puts one line in your morning brief.
    - If you merged it, setup sends you a short list of what will change and waits. Reply "apply" in setup's chat, or "revert" to undo the PR. setup doesn't ask when you asked it for the change in its chat.

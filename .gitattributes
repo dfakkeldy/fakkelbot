@@ -1,0 +1,6 @@
+# Almost every KB pull request adds an entry at the top of kb/bundle/log.md,
+# so two open pull requests often conflict there without touching the same
+# entry. Union merge keeps the lines from both sides, so `git merge
+# origin/main` finishes by itself. It applies only to log.md: on any other
+# page it would mix two real edits into one.
+kb/bundle/log.md merge=union

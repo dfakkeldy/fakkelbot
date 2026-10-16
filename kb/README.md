@@ -2,7 +2,7 @@
 
 This folder is shared memory for your bots and agents. A bot reads it before it acts, so it starts from what you already know. Changes come in as pull requests. A page merges itself once every check passes, such as the lint and the secret scan. A change to a decision or to the rules waits for you.
 
-The layout follows Andrej Karpathy's LLM Wiki pattern, in the Open Knowledge Format (OKF) v0.1. [Why the knowledge base is laid out this way](bundle/questions/why-this-layout.md) explains both, with sources.
+The layout follows Andrej Karpathy's LLM Wiki pattern, in the Open Knowledge Format (OKF) v0.2. [Why the knowledge base is laid out this way](bundle/questions/why-this-layout.md) explains both, with sources.
 
 Keep it small. Each page covers one topic, so a bot can read only what it needs.
 
@@ -44,7 +44,7 @@ Every change goes through a pull request. Nobody pushes to `main`, and that incl
 
 1. Copy the template for the folder. For example, copy `templates/reference.md` to `bundle/references/<topic>.md`. Name the file with lowercase words joined by hyphens. Number decisions in order, as in `bundle/decisions/0003-<topic>.md`.
 2. Fill in the frontmatter at the top of the page.
-3. Write the page. Put a date on any fact that can go out of date, and cite its source under `## Citations`. Link other pages with relative paths, such as `../decisions/0002-ci-decides-what-merges.md`.
+3. Write the page. Put a date on any fact that can go out of date, and cite its source with a footnote, as [Frontmatter](#frontmatter) shows. Link other pages with relative paths, such as `../decisions/0002-ci-decides-what-merges.md`.
 4. List the page in its folder's `index.md`, as `- [Title](file.md) - description`.
 5. Add an entry at the top of `bundle/log.md`, under today's date.
 6. Run the lint from the repository root.
@@ -55,11 +55,11 @@ Every change goes through a pull request. Nobody pushes to `main`, and that incl
 
 7. Open a pull request. The lint runs again in CI, and the Auto-merge workflow merges the pull request once every check passes. A change to `bundle/decisions/`, `AGENTS.md`, `tools/` or `templates/` waits for you to merge it.
 
-To change a page, edit it in place and set `timestamp` to now. Don't add a second page on the same topic.
+To change a page, edit it in place and update `generated`. Don't add a second page on the same topic.
 
 ## Frontmatter
 
-Each page starts with frontmatter. The lint fails if `type`, `title`, `description` or `timestamp` is missing or empty.
+Each page starts with frontmatter. The lint fails if `type`, `title`, `description` or `generated` is missing or empty, or if a value isn't written as below.
 
 ```yaml
 ---
@@ -67,10 +67,14 @@ type: Reference
 title: Grok Bot platform
 description: How Grok Bot runs bots, routines, approvals and templates, and the limits every bot works within.
 resource: https://docs.x.ai/grok-bot
-tags:
-  - grok-bot
-  - platform
-timestamp: 2026-10-14T20:58:27-03:00
+tags: [grok-bot, platform]
+generated: { by: claude-code/claude-opus-5-5, at: 2026-10-14T20:58:27-03:00 }
+sources:
+  - id: computer-and-apps
+    resource: https://docs.x.ai/grok-bot/computer-and-apps
+    title: Computer and apps
+    author: team:xai
+    checked: 2026-10-14
 ---
 ```
 
@@ -79,8 +83,20 @@ timestamp: 2026-10-14T20:58:27-03:00
 - `description` is one sentence. A bot reads it, in the page and in the index, to decide whether to open the page.
 - `resource` is optional. It's the main link for the thing the page is about.
 - `tags` is optional. It's a list of lowercase words.
-- `timestamp` is when the page last really changed, as an ISO 8601 date and time with its UTC offset.
-- `superseded_by` goes on a replaced page, written as `/folder/page.md`, with a line at the top that links to the page that replaces it.
+- `generated` says who wrote the current content, as `by`, and when it last really changed, as `at`. `by` is an actor: `human:<name>` for a person, such as `human:owner`, `process:<name>` for an automated job, or `<bot>/<platform or model>` for a bot or agent, such as `librarian/grok-bot`. `at` is an ISO 8601 date and time with its UTC offset.
+- `sources` lists what the page rests on. Each source needs `resource`, its URL or path, and `id` names it for footnotes. `title` and `author` are optional, and `author` is an actor, such as `team:xai`. This KB adds `checked`, the date someone last checked the source, and `capture`, the path of its copy in `sources/processed/`. Pages in `references/`, `topics/` and `questions/` must list their sources.
+- `verified` is optional. It records who checked the page against its sources and when, as `{ by, at }` or a list of them. A check by a `human:` actor marks the page human-reviewed.
+- `status` is optional: `draft`, `stable` (the default) or `deprecated`.
+- `stale_after` is optional. It's the date and time from which the page is out of date, such as the end of a price offer.
+- `superseded_by` goes on a replaced page, written as `/folder/page.md`, with `status: deprecated` and a line at the top that links to the page that replaces it.
+
+In the body, cite a source with a footnote whose label is the source's `id`, and add a definition line at the end of the page:
+
+```markdown
+All of an account's bots share one cloud computer.[^computer-and-apps]
+
+[^computer-and-apps]: [Computer and apps](https://docs.x.ai/grok-bot/computer-and-apps), xAI docs.
+```
 
 OKF lets you add other keys. Keep the ones you find on a page.
 

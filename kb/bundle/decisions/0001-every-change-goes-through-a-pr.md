@@ -2,10 +2,10 @@
 type: Decision
 title: Every change goes through a PR
 description: Replaced by 0002. Changes to bots/ and kb/ went through a pull request, and live bots changed only after the owner replied "apply".
-tags:
-  - pull-requests
+tags: [pull-requests]
+status: deprecated
 superseded_by: /decisions/0002-ci-decides-what-merges.md
-timestamp: 2026-10-15T07:04:54-03:00
+generated: { by: claude-code/claude-opus-5-5, at: 2026-10-15T07:04:54-03:00 }
 ---
 
 # 0001. Every change goes through a PR

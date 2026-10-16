@@ -2,9 +2,8 @@
 type: Decision
 title: Short decision title
 description: One sentence that states the decision.
-tags:
-  - topic-word
-timestamp: YYYY-MM-DDTHH:MM:SS+00:00
+tags: [topic-word]
+generated: { by: librarian/grok-bot, at: YYYY-MM-DDTHH:MM:SS+00:00 }
 ---
 
 # NNNN. Short decision title
@@ -13,7 +12,7 @@ Accepted on YYYY-MM-DD.
 
 ## Context
 
-What forced a choice. Give facts with their dates and links. If this decision replaces an earlier one, link to it, and add `superseded_by: /decisions/NNNN-this-decision.md` to the earlier one's frontmatter.
+What forced a choice. Give facts with their dates and links. If this decision replaces an earlier one, link to it, and add `status: deprecated` and `superseded_by: /decisions/NNNN-this-decision.md` to the earlier one's frontmatter.
 
 ## Decision
 

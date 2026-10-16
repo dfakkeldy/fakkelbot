@@ -3,9 +3,8 @@ type: Project
 title: Example App
 description: Sample project note that shows the format. Replace it with your first real project, or delete it.
 resource: https://github.com/example-org/example-app
-tags:
-  - example
-timestamp: 2026-10-15T07:04:54-03:00
+tags: [example]
+generated: { by: claude-code/claude-opus-5-5, at: 2026-10-15T07:04:54-03:00 }
 ---
 
 # Example App

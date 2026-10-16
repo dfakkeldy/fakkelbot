@@ -3,9 +3,8 @@ type: Project
 title: Project name
 description: One sentence on what the project is.
 resource: https://github.com/owner/repo
-tags:
-  - topic-word
-timestamp: YYYY-MM-DDTHH:MM:SS+00:00
+tags: [topic-word]
+generated: { by: librarian/grok-bot, at: YYYY-MM-DDTHH:MM:SS+00:00 }
 ---
 
 # Project name

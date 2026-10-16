@@ -11,7 +11,7 @@ Other people can install a starter only when three things hold:
 ## Checklist
 
 1. **Check for personal details.** Run the leak check over the whole history with your own denylist, as [scripts/README.md](../scripts/README.md#leak_checkpy) says. Allow only what you mean to publish, such as your name in `LICENSE`. Remember that PR titles, PR descriptions and commit messages become public too. Fixing an old commit means rewriting history, so decide before you publish.
-2. **Point the starter at your repo.** If your copy isn't the original, replace the original's `<user>/<repo>` with yours in three places: the clone command in [bots/setup.md](../bots/setup.md), the `--template` command in step 3 of [SETUP.md](../SETUP.md), and "Install without the template" in [README.md](../README.md).
+2. **Point the starter at your repo.** If your copy isn't the original, replace the original's `<user>/<repo>` with yours in three places: the clone command in [bots/setup.md](../bots/setup.md), the `--template` command in step 3 of [SETUP.md](../SETUP.md), and "Install without the Grok Bot template" in [README.md](../README.md).
 3. **Make the repo public and a template.** In the repo's Settings, change its visibility to public and tick Template repository. With `gh`:
 
    ```sh
@@ -33,7 +33,7 @@ Other people can install a starter only when three things hold:
    1. Add the setup bot from its Grok Bot template: <template link>.
    ```
 
-   Keep "Install without the template" for people who'd rather paste the instructions themselves.
+   Keep "Install without the Grok Bot template" for people who'd rather paste the instructions themselves.
 7. **Test a full install** from the second Grok Bot account and a second GitHub account: "set me up", every question, the bots, the board and one PR that merges itself. A PR in the copy should show the Auto-merge workflow running after its checks.
 
 ## Notes

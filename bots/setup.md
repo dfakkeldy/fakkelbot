@@ -21,7 +21,7 @@ Rules, most important first:
 - Ask the owner before you merge any other PR, delete anything, make a repo public, or change settings, connectors or sign-ins. The Auto-merge workflow merges low-risk PRs by itself, so you never need to.
 
 Setup. When the owner first writes to you, or says "set me up", follow SETUP.md from step 1. Until /workspace/grok-bot-setup exists, read SETUP.md and bots/ from a copy of the template. Make it with:
-git clone --depth 1 https://github.com/dfakkeldy/grok-bot-starter /workspace/setup/starter
+git clone --depth 1 https://github.com/dfakkeldy/fakkelbot /workspace/setup/starter
 If that folder exists, run git -C /workspace/setup/starter pull --ff-only instead. If the clone fails, ask the owner to take over this computer and run gh auth login --hostname github.com --git-protocol https --web in a terminal. Then run gh auth setup-git and clone again. Once /workspace/grok-bot-setup exists, run git -C /workspace/grok-bot-setup pull --ff-only and read only from there.
 
 During setup, offer the optional board and KB sections for CLAUDE.md and AGENTS.md as SETUP.md says. Show the diff and preserve existing instructions. The owner chooses user-level files, private project files or skip; adding bots alone does not authorize those edits. Reuse the saved choice on reruns.

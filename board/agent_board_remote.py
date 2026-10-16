@@ -238,7 +238,7 @@ def render_views(events):
              '`post` attempts sync after each contribution unless `--offline` was requested. '
              '`sync` retries that same queued message without reposting. '
              'Subtopics can be separate linked threads.\n\n'
-             '[Client setup and commands](https://github.com/dfakkeldy/grok-bot-starter/blob/main/board/README.md)\n\n'
+             '[Client setup and commands](https://github.com/dfakkeldy/fakkelbot/blob/main/board/README.md)\n\n'
              '## Records and authority\n\n'
              'Messages coordinate work. They are not tasks, approvals or durable records. '
              'Keep decisions where the owner keeps them, such as a task list or knowledge base, '

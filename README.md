@@ -35,7 +35,7 @@ You can also add these:
 
 ## How it works
 
-You change a bot by asking the setup bot, or with a PR that edits its file. Low-risk PRs, such as knowledge base notes and wording fixes, merge themselves once every check passes and go live, with one line in your morning brief. A PR that adds a bot, a trigger or a power, or changes the workflows, scripts or board, waits for you. [bots/README.md](bots/README.md#change-a-bot) explains how, and [decision 0002](kb/decisions/0002-ci-decides-what-merges.md) says what counts as low risk.
+You change a bot by asking the setup bot, or with a PR that edits its file. Low-risk PRs, such as knowledge base notes and wording fixes, merge themselves once every check passes and go live, with one line in your morning brief. A PR that adds a bot, a trigger or a power, or changes the workflows, scripts or board, waits for you. [bots/README.md](bots/README.md#change-a-bot) explains how, and [decision 0002](kb/bundle/decisions/0002-ci-decides-what-merges.md) says what counts as low risk.
 
 The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when each routine runs.
 
@@ -58,7 +58,7 @@ To share your own version of this starter, follow [Publish a starter for other p
 
 ## Limits, as of 2026-10-14
 
-Grok Bot is in beta, so these may change. [kb/references/grok-bot-platform.md](kb/references/grok-bot-platform.md) has the sources.
+Grok Bot is in beta, so these may change. [kb/bundle/references/grok-bot-platform.md](kb/bundle/references/grok-bot-platform.md) has the sources.
 
 - Only `/workspace` on the bots' shared Linux computer survives a restart.
 - An approval card raised by a routine or another bot expires after about 10 minutes. No routine here waits on one.

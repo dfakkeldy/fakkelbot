@@ -5,7 +5,7 @@ name: Auto-merge
 # scripts/auto_merge.py from main, so a PR can't change the rules that judge
 # it. Nothing here checks out or runs the PR's code; the script reads the PR
 # through the GitHub API as data. The rules are in
-# kb/decisions/0002-ci-decides-what-merges.md.
+# kb/bundle/decisions/0002-ci-decides-what-merges.md.
 
 on:
   workflow_run:

@@ -118,7 +118,7 @@ python3 scripts/bot_chart.py
 
 `--bots <folder>` reads another folder, and `--out <file>` writes the page to another file, with its images beside it. The script needs Python 3.9 or newer, with `bot_chart.json` beside it, and nothing else. The same bot files always give the same files, byte for byte. If it can't read a bot file, it names the bot and the routine on stderr, exits with 1 and writes nothing.
 
-The `Bot chart` workflow runs on every push and PR, and never writes to the repo. It fails when the script can't read a bot file. It only warns when the page or an image doesn't match `bots/`, so a bot change made on GitHub's website isn't blocked. Nothing regenerates the chart for you, because changes reach `main` only through a PR, as [decision 0002](../kb/decisions/0002-ci-decides-what-merges.md) says.
+The `Bot chart` workflow runs on every push and PR, and never writes to the repo. It fails when the script can't read a bot file. It only warns when the page or an image doesn't match `bots/`, so a bot change made on GitHub's website isn't blocked. Nothing regenerates the chart for you, because changes reach `main` only through a PR, as [decision 0002](../kb/bundle/decisions/0002-ci-decides-what-merges.md) says.
 
 ### How it reads a bot file
 
@@ -165,12 +165,12 @@ The rules read words, not meaning. The script misses a hand-off phrased another 
 
 ## auto_merge.py
 
-`auto_merge.py` decides whether a PR merges itself, and merges it. The [Auto-merge workflow](../.github/workflows/auto-merge.yml) runs it from `main` each time a check workflow finishes on a PR, so a PR can't change the rules that judge it. [Decision 0002](../kb/decisions/0002-ci-decides-what-merges.md) explains why.
+`auto_merge.py` decides whether a PR merges itself, and merges it. The [Auto-merge workflow](../.github/workflows/auto-merge.yml) runs it from `main` each time a check workflow finishes on a PR, so a PR can't change the rules that judge it. [Decision 0002](../kb/bundle/decisions/0002-ci-decides-what-merges.md) explains why.
 
 It reads the PR through the GitHub API as data, and never checks out or runs the PR's code. It merges only when all of these hold:
 
 - The PR is open and isn't a draft. It targets the default branch and comes from a branch in the same repo. It has no `hold` label and no merge conflict, and changes at most 300 files.
-- Every changed path is low risk, as `PATH_RULES` says: notes in `kb/` (not `kb/decisions/`, `kb/AGENTS.md`, `kb/tools/` or `kb/templates/`), `docs/`, `README.md`, and wording in `bots/*.md` other than `bots/setup.md`. A renamed file counts under both names.
+- Every changed path is low risk, as `PATH_RULES` says: notes and sources in `kb/` (not `kb/bundle/decisions/`, `kb/AGENTS.md`, `kb/tools/` or `kb/templates/`), `docs/`, `README.md`, and wording in `bots/*.md` other than `bots/setup.md`. A renamed file counts under both names.
 - A bot file change adds no bot or routine, changes no trigger, turns no routine on and changes at most 40 lines. The file has no more words from `POWER_TERMS` than before, and no fewer phrases from `SAFETY_PHRASES`. A word doesn't count when "never", "not", "no", "don't", "without" or a similar word is one of the three words before it in the same clause.
 - Every workflow in `REQUIRED_WORKFLOWS` that applies to the PR passed on its current head commit, with every job in it. A workflow with path filters applies only when the PR changes a path it watches. Any other workflow run on that commit, and any check from an app outside GitHub Actions, must not have failed.
 

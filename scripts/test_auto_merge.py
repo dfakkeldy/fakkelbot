@@ -38,15 +38,18 @@ def tier(*changes):
 
 class PathTiers(unittest.TestCase):
     def test_low_paths(self):
-        for path in ("kb/references/x.md", "kb/projects/y.md", "kb/README.md", "docs/guide.md", "docs/a/b.svg", "README.md"):
+        for path in (
+            "kb/bundle/references/x.md", "kb/bundle/questions/y.md", "kb/bundle/log.md",
+            "kb/sources/inbox/a.md", "kb/README.md", "docs/guide.md", "docs/a/b.svg", "README.md",
+        ):
             with self.subTest(path=path):
                 self.assertEqual(tier(FileChange(path, "modified")), (am.LOW, []))
 
     def test_high_paths(self):
         for path in (
             ".github/workflows/kb-lint.yml", "scripts/auto_merge.py", "board/board.py",
-            "kb/decisions/0003-x.md", "kb/AGENTS.md", "kb/tools/kb_lint.py", "kb/templates/note.md",
-            "SETUP.md", "LICENSE", ".gitignore", "groups/coding.md", "bots/setup.md", "bots/sub/x.md",
+            "kb/bundle/decisions/0003-x.md", "kb/AGENTS.md", "kb/tools/kb_lint.py", "kb/templates/note.md",
+            "SETUP.md", "LICENSE", ".gitignore", ".gitattributes", "groups/coding.md", "bots/setup.md", "bots/sub/x.md",
         ):
             with self.subTest(path=path):
                 result, reasons = tier(FileChange(path, "modified", None, "x", "y"))
@@ -266,7 +269,7 @@ class FakeGitHub(am.GitHub):
 
 class Evaluate(unittest.TestCase):
     def test_low_risk_pr_with_passing_checks_merges(self):
-        gh = FakeGitHub([FileChange("kb/references/x.md", "modified")])
+        gh = FakeGitHub([FileChange("kb/bundle/references/x.md", "modified")])
         decision = am.evaluate(gh, 7, SHA)
         self.assertEqual(decision, am.Decision("merge", (), 7, SHA))
         self.assertEqual(am.merge(gh, decision), ["merged"])

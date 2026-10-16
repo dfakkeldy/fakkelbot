@@ -1,13 +1,16 @@
 ---
-type: decision
+type: Decision
 title: CI decides what merges
 description: Low-risk PRs merge themselves once every check passes on their head commit, the bots follow main, and the owner decides only high-risk changes.
-updated: 2026-10-14
+tags:
+  - pull-requests
+  - auto-merge
+timestamp: 2026-10-15T21:50:05-03:00
 ---
 
 # 0002. CI decides what merges
 
-Accepted on 2026-10-14. It replaces [0001. Every change goes through a PR](0001-every-change-goes-through-a-pr.md).
+Accepted on 2026-10-14. It replaces [0001. Every change goes through a PR](0001-every-change-goes-through-a-pr.md). On 2026-10-15 the KB paths below were updated when the notes moved into `kb/bundle/`. The decision itself didn't change.
 
 ## Context
 
@@ -24,7 +27,7 @@ All of an account's bots share one computer, with its files and sign-ins ([appro
 - Every change still goes through a PR against `main`, and no bot pushes to `main`.
 - The Auto-merge workflow merges a PR by itself when all of these hold:
   - The PR is open, isn't a draft, targets `main` and comes from a branch in the same repo. It has no `hold` label.
-  - It changes only low-risk paths: notes in `kb/`, `docs/`, `README.md`, and wording in `bots/*.md`. `kb/decisions/`, `kb/AGENTS.md`, `kb/tools/`, `kb/templates/` and `bots/setup.md` aren't low risk.
+  - It changes only low-risk paths: notes and sources in `kb/`, `docs/`, `README.md`, and wording in `bots/*.md`. `kb/bundle/decisions/`, `kb/AGENTS.md`, `kb/tools/`, `kb/templates/` and `bots/setup.md` aren't low risk.
   - A bot file change adds no bot, routine or trigger, turns no routine on, adds no words about a power, drops no safety rule and changes at most 40 lines. Powers include merging, deleting, buying, sending email, posting publicly, approvals, secrets and connectors. A sync export is judged the same way.
   - Every check workflow that applies to the PR passed on its current head commit, with every job in it. A workflow whose path filter skips the PR, such as Board tests on a docs-only PR, isn't required.
   - It merges with `gh pr merge --squash --match-head-commit`, so a commit pushed after the checks ran can't slip in.

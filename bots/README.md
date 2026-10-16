@@ -83,3 +83,7 @@ A Grok Bot template copies a bot's instructions, its routines, some plugins, and
 2. Create the template from that fresh bot.
 3. Add the template from a second Grok Bot account, and check what came across: instructions, routines, memories and skills.
 4. Share the link only when nothing personal came with it. A bot whose file uses `<owner>` carries your GitHub username.
+
+## Notification defaults
+
+Each bot has a recommended Settings block and Sidebar default. [Notification settings](../docs/notification-settings.md) describes the owner-selected mode and temporary overrides. SETUP.md collects the choice before applying it; these defaults do not overwrite existing preferences. Each bot sets only its own `notify_on_updates` and `hidden_from_sidebar` through UpdateProfile. Keep defaults separate from active temporary state in exports.

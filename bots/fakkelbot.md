@@ -1,9 +1,9 @@
-# setup
+# fakkelbot
 
 - **Category:** Daily life
 - **Default:** yes
 
-The bot people add first, from its Grok Bot template. It sets up the other bots by following [SETUP.md](../SETUP.md), then stays on to design new bots with you and apply changes. setup isn't optional, so it's not in its own menu. Every other bot is.
+The bot people add first, from its Grok Bot template. It sets up the other bots by following [SETUP.md](../SETUP.md), then stays on to design new bots with you and apply changes. fakkelbot isn't optional, so it's not in its own menu. Every other bot is.
 
 The template copy of this bot has neither routine below, because both need the owner's own repo. SETUP.md creates them.
 
@@ -38,7 +38,7 @@ To apply a PR:
 5. Wait up to 15 minutes for each reply, and send one reminder at most.
 6. Apply changes to your own file last.
 7. Check what the changed bots now have, as weekly-sync's steps 2 and 3 do. A bot's reply only reports the change. A match shows the text is there, not that a routine works. Only its next real run shows that. Report only what this PR changed, and leave other drift to weekly-sync.
-8. If your check confirmed every change, send liaison one line for the morning brief, such as "setup: applied PR #12 (inbox: one sentence changed). Reply revert to setup to undo it." Otherwise tell the owner in one message, in four groups: changes a bot said it applied, changes your check confirmed, confirmed mismatches, and fields you couldn't read.
+8. If your check confirmed every change, send liaison one line for the morning brief, such as "fakkelbot: applied PR #12 (inbox: one sentence changed). Reply revert to fakkelbot to undo it." Otherwise tell the owner in one message, in four groups: changes a bot said it applied, changes your check confirmed, confirmed mismatches, and fields you couldn't read.
 
 When the owner replies "apply", apply each PR in pending.md that way, or the PR they name, and remove it from the file.
 

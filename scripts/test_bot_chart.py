@@ -148,9 +148,9 @@ class EdgeTest(unittest.TestCase):
             })
 
     def test_paths_repos_and_file_names_are_not_mentions(self):
-        setup = bot_file("setup", "Apply changes.")
-        reader = bot_file("reader", "Read SETUP.md, grok-bot-setup and bots/setup.md. Use SendToAgent.")
-        with fleet_dir(setup, reader) as directory:
+        fakkelbot = bot_file("fakkelbot", "Apply changes.")
+        reader = bot_file("reader", "Read SETUP.md, grok-bot-setup, bots/fakkelbot.md and https://github.com/dfakkeldy/fakkelbot. Use SendToAgent.")
+        with fleet_dir(fakkelbot, reader) as directory:
             self.assertEqual(bc.find_edges(bc.load_bots(directory)), set())
 
     def test_the_owner_s_github_username_is_not_github_use(self):
@@ -268,7 +268,7 @@ Times are in the owner's timezone, like the schedules in the bot files. [scripts
 
 ### Hand-offs and what wakes each bot
 
-Grey arrows are hand-offs between bots. The table of every edge below says where each one appears. Thick amber arrows are GitHub events that wake a bot. A bot's colour is its category: green for Daily life and orange for Content. A pale bot with a dashed outline is one that setup adds only when the owner asks for it.
+Grey arrows are hand-offs between bots. The table of every edge below says where each one appears. Thick amber arrows are GitHub events that wake a bot. A bot's colour is its category: green for Daily life and orange for Content. A pale bot with a dashed outline is one that fakkelbot adds only when the owner asks for it.
 
 ```mermaid
 %%{init: {"flowchart": {"curve": "basis"}}}%%
@@ -323,7 +323,7 @@ flowchart TB
   <img alt="A day of scheduled routines, with one row per routine and a dot at each start time. The tables below list the same times." src="bot-chart-schedule-light.svg">
 </picture>
 
-Each dot is a routine's start time. A filled dot on the left marks a bot setup adds by default, and a ring marks an optional one.
+Each dot is a routine's start time. A filled dot on the left marks a bot fakkelbot adds by default, and a ring marks an optional one.
 
 The chart leaves out one disabled routine, beta's old-sweep.
 

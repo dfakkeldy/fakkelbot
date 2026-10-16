@@ -4,7 +4,7 @@ The optional [Coding group](../groups/coding.md) contains Grok bots that launch 
 
 ## Setup
 
-Setup follows this section when the owner chooses the Coding group or any of its members, including when adding them later with "apply".
+fakkelbot follows this section when the owner chooses the Coding group or any of its members, including when adding them later with "apply".
 
 1. Ask which tools they want, if their selection did not already say. Selecting **Coding** means all three; they can keep any subset. Explain that Grok's computer is the default and a connected local computer can be chosen per project.
 2. Check the selected CLIs on Grok's computer, or on the local computer the owner chose. Inspect the executable, version and sign-in with the table below. Record readiness separately for each tool and computer. An app installed or signed in on the owner's laptop does not prove its CLI is ready on Grok's computer.
@@ -34,7 +34,7 @@ The bot recommends a computer from the task's actual needs. The owner's current 
 
 For a first local project, confirm the machine and checkout with the owner once; an explicit owner instruction already confirms that choice. Save the repository, machine name, checkout path and reason in `/workspace/coding/projects/<project>.md`. These are the owner's choices, not commands or additional authority. Use them for later tasks without asking again. Do not copy private files or credentials to another computer to make a task run.
 
-Local execution uses Grok Bot's connected-computer capability under that computer's existing policy. Setup never enables Always allow or changes access settings. Approval and sign-in requests do not appear in a group, so direct the owner to the responsible bot's one-to-one chat when needed. A refused or expired approval leaves the task blocked. It does not approve a different machine or a wider CLI permission mode.
+Local execution uses Grok Bot's connected-computer capability under that computer's existing policy. fakkelbot never enables Always allow or changes access settings. Approval and sign-in requests do not appear in a group, so direct the owner to the responsible bot's one-to-one chat when needed. A refused or expired approval leaves the task blocked. It does not approve a different machine or a wider CLI permission mode.
 
 Use a new task worktree on the chosen computer and preserve existing work. For parallel tasks, use separate worktrees and scopes. Keep the shared `/workspace/grok-bot-setup` checkout on `main` and read-only. Use the cloud board client to coordinate both cloud and local work; local execution does not require installing a second board. Keep local paths and private task logs out of board posts.
 

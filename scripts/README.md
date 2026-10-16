@@ -149,19 +149,19 @@ A bot hands off to another bot when a sentence has one of these:
 - "save" and, later in the sentence, "for" and the bot's name, as in "save them for librarian".
 - `SendToAgent` and another bot's name. If the sentence names no other bot, the script uses the bots that the sentence before it names.
 
-"each affected bot", "each changed bot", "that bot" and "the bot that owns it" all point to one node, `each affected bot`. setup and liaison send to whichever bot a change or a board thread touches, so the chart can't name them.
+"each affected bot", "each changed bot", "that bot" and "the bot that owns it" all point to one node, `each affected bot`. fakkelbot and liaison send to whichever bot a change or a board thread touches, so the chart can't name them.
 
 A bot uses an outside system when a sentence matches one of that system's patterns in `systems` in `bot_chart.json`. It lists GitHub, the knowledge base, the agent board, Gmail, Google Calendar, Claude Code, Cursor Agent and Codex CLI. To chart another app, add it there. A routine's GitHub trigger is a thick arrow from GitHub to its bot.
 
 Three rules keep a mention from counting:
 
-- A bot's name inside a path, repo or file name doesn't count, so `grok-bot-setup`, `bots/inbox.md` and `SETUP.md` don't mention setup or inbox.
+- A bot's name inside a path, repo or file name doesn't count, so `bots/inbox.md`, `bots/fakkelbot.md` and `dfakkeldy/fakkelbot` don't mention inbox or fakkelbot.
 - A sentence in which a bot's name comes right before `=`, such as a map of which bot does what (`inbox = mail; scheduler = calendar`), is skipped.
 - A name or pattern doesn't count when "never", "not", "no", "don't" or "without" is one of the three words before it in the same clause. A comma, a semicolon, a colon or a parenthesis ends a clause.
 
 ### Limits
 
-The rules read words, not meaning. The script misses a hand-off phrased another way, and a name still counts when its "never" is more than three words before it. If an arrow looks wrong, check the bot's sentences against the rules above.
+The rules read words, not meaning. The script misses a hand-off phrased another way, and a name still counts when its "never" is more than three words before it. Names match in any case, so the product name FakkelBot in a bot's text counts as a mention of fakkelbot. If an arrow looks wrong, check the bot's sentences against the rules above.
 
 ## auto_merge.py
 
@@ -170,7 +170,7 @@ The rules read words, not meaning. The script misses a hand-off phrased another 
 It reads the PR through the GitHub API as data, and never checks out or runs the PR's code. It merges only when all of these hold:
 
 - The PR is open and isn't a draft. It targets the default branch and comes from a branch in the same repo. It has no `hold` label and no merge conflict, and changes at most 300 files.
-- Every changed path is low risk, as `PATH_RULES` says: notes and sources in `kb/` (not `kb/bundle/decisions/`, `kb/AGENTS.md`, `kb/tools/` or `kb/templates/`), `docs/`, `README.md`, and wording in `bots/*.md` other than `bots/setup.md`. A renamed file counts under both names.
+- Every changed path is low risk, as `PATH_RULES` says: notes and sources in `kb/` (not `kb/bundle/decisions/`, `kb/AGENTS.md`, `kb/tools/` or `kb/templates/`), `docs/`, `README.md`, and wording in `bots/*.md` other than `bots/fakkelbot.md`. A renamed file counts under both names.
 - A bot file change adds no bot or routine, changes no trigger, turns no routine on and changes at most 40 lines. The file has no more words from `POWER_TERMS` than before, and no fewer phrases from `SAFETY_PHRASES`. A word doesn't count when "never", "not", "no", "don't", "without" or a similar word is one of the three words before it in the same clause.
 - Every workflow in `REQUIRED_WORKFLOWS` that applies to the PR passed on its current head commit, with every job in it. A workflow with path filters applies only when the PR changes a path it watches. Any other workflow run on that commit, and any check from an app outside GitHub Actions, must not have failed.
 

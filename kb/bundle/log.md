@@ -2,6 +2,10 @@
 
 What changed in the knowledge base, newest first. Each entry sits under its date and starts with a bold word, such as **Ingest**, **Update**, **Answer**, **Tidy** or **Decision**. Add one entry for each change worth knowing about, not one for each run.
 
+## 2026-10-16
+
+- **Update**: The setup bot is now called fakkelbot. [0002. CI decides what merges](decisions/0002-ci-decides-what-merges.md) and [Grok Bot platform](references/grok-bot-platform.md) use the new name. [0001](decisions/0001-every-change-goes-through-a-pr.md) is deprecated history and keeps the old one.
+
 ## 2026-10-15
 
 - **Update**: Moved the pages to OKF v0.2. `generated` replaces `timestamp`, and each page's sources moved from a Citations list into its frontmatter, cited with footnotes. [0001](decisions/0001-every-change-goes-through-a-pr.md) is now `status: deprecated`. [Why the knowledge base is laid out this way](questions/why-this-layout.md) explains the v0.2 fields, from a new capture of the spec in `kb/sources/processed/`.

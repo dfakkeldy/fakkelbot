@@ -16,7 +16,7 @@ class BoardWrapperTests(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         store = Path(temp.name) / 'workspace' / 'messages.jsonl'
         default = Path(temp.name) / 'default' / 'messages.jsonl'
-        argv = ['board.py', 'post', '--author', 'setup', '--task', 'first-setup', '--project', 'grok-bot-setup',
+        argv = ['board.py', 'post', '--author', 'fakkelbot', '--task', 'first-setup', '--project', 'grok-bot-setup',
                 '--topic', 'First setup', '--kind', 'update', '--owner-visible']
 
         with mock.patch.object(board, 'STORE', str(store)), \
@@ -26,7 +26,7 @@ class BoardWrapperTests(unittest.TestCase):
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(0, board.main())
 
-        self.assertEqual([('First setup', 'setup', 'Setup finished.')],
+        self.assertEqual([('First setup', 'fakkelbot', 'Setup finished.')],
                          [(t['topic'], t['last_author'], t['last_message']) for t in agent_messages.list_threads(store)])
         self.assertFalse(default.exists())
 

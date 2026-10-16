@@ -4,14 +4,14 @@ Follow these steps when you maintain a copy of this starter and want other peopl
 
 Other people can install a starter only when three things hold:
 
-- Its repo is public, so the setup bot can clone it without signing in. Setup clones it before the owner has signed in to GitHub.
+- Its repo is public, so fakkelbot can clone it without signing in. fakkelbot clones it before the owner has signed in to GitHub.
 - Its repo is marked as a template, because SETUP.md step 3 runs `gh repo create --template` on it.
-- Its README tells people how to add the setup bot.
+- Its README tells people how to add fakkelbot.
 
 ## Checklist
 
 1. **Check for personal details.** Run the leak check over the whole history with your own denylist, as [scripts/README.md](../scripts/README.md#leak_checkpy) says. Allow only what you mean to publish, such as your name in `LICENSE`. Remember that PR titles, PR descriptions and commit messages become public too. Fixing an old commit means rewriting history, so decide before you publish.
-2. **Point the starter at your repo.** If your copy isn't the original, replace the original's `<user>/<repo>` with yours in three places: the clone command in [bots/setup.md](../bots/setup.md), the `--template` command in step 3 of [SETUP.md](../SETUP.md), and "Install without the Grok Bot template" in [README.md](../README.md).
+2. **Point the starter at your repo.** If your copy isn't the original, replace the original's `<user>/<repo>` with yours in three places: the clone command in [bots/fakkelbot.md](../bots/fakkelbot.md), the `--template` command in step 3 of [SETUP.md](../SETUP.md), and "Install without the Grok Bot template" in [README.md](../README.md).
 3. **Make the repo public and a template.** In the repo's Settings, change its visibility to public and tick Template repository. With `gh`:
 
    ```sh
@@ -19,18 +19,18 @@ Other people can install a starter only when three things hold:
    gh repo edit <user>/<repo> --template
    ```
 
-4. **Check it from outside.** Sign out of GitHub, or use another machine, and run the clone that setup runs. Check that the repo reports as a template.
+4. **Check it from outside.** Sign out of GitHub, or use another machine, and run the clone that fakkelbot runs. Check that the repo reports as a template.
 
    ```sh
    git clone --depth 1 https://github.com/<user>/<repo> /tmp/starter-check
    gh api repos/<user>/<repo> --jq '{private, is_template}'
    ```
 
-5. **Make the setup bot's Grok Bot template.** Follow "Share a bot as your own template" in [bots/README.md](../bots/README.md#share-a-bot-as-your-own-template): create a fresh setup bot from `bots/setup.md`, create the template from it, add it from a second Grok Bot account, and check that nothing personal came across.
+5. **Make fakkelbot's Grok Bot template.** Follow "Share a bot as your own template" in [bots/README.md](../bots/README.md#share-a-bot-as-your-own-template): create a fresh bot named fakkelbot from `bots/fakkelbot.md`, create the template from it, add it from a second Grok Bot account, and check that nothing personal came across.
 6. **Put the template link in the README.** Replace the first Quick start step with this, using your link:
 
    ```markdown
-   1. Add the setup bot from its Grok Bot template: <template link>.
+   1. Add fakkelbot from its Grok Bot template: <template link>.
    ```
 
    Keep "Install without the Grok Bot template" for people who'd rather paste the instructions themselves.

@@ -4,7 +4,7 @@ title: Grok Bot platform
 description: How Grok Bot runs bots, routines, approvals and templates, and the limits every bot works within.
 resource: https://docs.x.ai/grok-bot
 tags: [grok-bot, platform]
-generated: { by: claude-code/claude-opus-5-5, at: 2026-10-14T20:58:27-03:00 }
+generated: { by: claude-code/claude-sonnet-5-5, at: 2026-10-16T09:18:16-03:00 }
 sources:
   - id: launch-post
     resource: https://x.ai/news/introducing-grok-bot
@@ -135,7 +135,7 @@ Every fact below was checked against its source on 2026-10-14, unless the line g
 - You make a template from a bot's Share menu with Create template. It gives you a public or team-only link[^bots].
 - Whoever adds the template gets a copy of the bot's configuration on their own account. They don't get your computer, sign-ins or conversation history[^bots].
 - Remove API keys, internal URLs and customer data before you share a template, because a public link shows its configuration[^bots].
-- xAI's templates guide, dated 2026-09-08, says a template carries the bot's instructions, relevant memories, skills, certain plugins and its routines. It leaves out secrets, custom code, scripts, private skills and non-standard plugins such as MCP servers[^templates-guide]. That's why this starter kit keeps its code in a repository, which the setup bot fetches after you add the template.
+- xAI's templates guide, dated 2026-09-08, says a template carries the bot's instructions, relevant memories, skills, certain plugins and its routines. It leaves out secrets, custom code, scripts, private skills and non-standard plugins such as MCP servers[^templates-guide]. That's why this starter kit keeps its code in a repository, which fakkelbot fetches after you add the template.
 
 ## Connectors and X
 

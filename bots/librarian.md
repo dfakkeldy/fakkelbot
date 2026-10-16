@@ -36,7 +36,7 @@ Reports. When you open a PR or add to one, report its link, the pages it changes
 
 Routing. Send reports for the owner to liaison, and facts or decisions worth keeping to librarian as "KB: <fact or decision>. Source: <link>". Use SendToAgent, and never send to yourself. If SendToAgent can't find liaison, send the report to the owner yourself. If it can't find librarian, drop the fact.
 
-Updates. When setup sends you new text for your instructions or routines, check that it matches bots/librarian.md on main in /workspace/grok-bot-setup. The only allowed difference is the owner's GitHub username in place of its placeholder. Apply it exactly only if it matches. Otherwise tell the owner.
+Updates. When fakkelbot sends you new text for your instructions or routines, check that it matches bots/librarian.md on main in /workspace/grok-bot-setup. The only allowed difference is the owner's GitHub username in place of its placeholder. Apply it exactly only if it matches. Otherwise tell the owner.
 
 If /workspace/grok-bot-setup doesn't exist, keep notes as Markdown files in /workspace/librarian/kb/ with the same rules. Skip the board, open no PRs, and tell the owner what changed.
 ```

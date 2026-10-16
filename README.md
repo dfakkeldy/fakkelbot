@@ -6,17 +6,17 @@ A starter team of bots for Grok Bot that you set up by chatting with one of them
 
 You need Grok Bot and a GitHub account.
 
-1. In Grok Bot, create a new bot named setup. Paste the Instructions block from [bots/setup.md](bots/setup.md) as its description.
+1. In Grok Bot, create a new bot named fakkelbot. Paste the Instructions block from [bots/fakkelbot.md](bots/fakkelbot.md) as its description.
 2. Tell it "set me up".
 3. Answer its three questions about your GitHub username, your timezone and which bots you want.
 
 It then helps you sign in to GitHub and connect your apps. It never asks for a password or token in chat.
 
-Setup also offers to add board and knowledge base instructions to your `CLAUDE.md` and `AGENTS.md`, so coding agents outside Grok coordinate with your bots, check what the KB already knows and hand it new facts. You choose the files and review the diff, or skip. [Instruction-file setup](docs/agent-instructions-setup.md) explains the choices.
+It also offers to add board and knowledge base instructions to your `CLAUDE.md` and `AGENTS.md`, so coding agents outside Grok coordinate with your bots, check what the KB already knows and hand it new facts. You choose the files and review the diff, or skip. [Instruction-file setup](docs/agent-instructions-setup.md) explains the choices.
 
 ## What you get
 
-- **setup** creates everything below, then designs new bots with you and applies your changes.
+- **fakkelbot** creates everything below, then designs new bots with you and applies your changes.
 - **liaison** sends you one morning brief built from the other bots' reports.
 - **inbox** marks Gmail as read, labels what needs you and tells you what matters.
 - **researcher** answers your questions with a link and a date for every claim.
@@ -31,11 +31,11 @@ You can also add these:
 - **pantry** keeps your shopping list and tells you about real deals on what you buy.
 - **editor** suggests posts about what you shipped and drafts the ones you pick.
 - **clerk** finds and files the files on your own computer when you ask. It logs every move so you can undo it, and never deletes anything.
-- **Coding group** adds **claude**, **cursor** and **codex**, which operate Claude Code, Cursor Agent and Codex CLI. Each handles assigned tasks and can review another tool's work. Choose all three or any subset. They have no routines, and setup checks each selected CLI and sign-in. [Coding setup and computer choices](docs/coding-group.md) explains how they use Grok's computer or an approved local computer.
+- **Coding group** adds **claude**, **cursor** and **codex**, which operate Claude Code, Cursor Agent and Codex CLI. Each handles assigned tasks and can review another tool's work. Choose all three or any subset. They have no routines, and fakkelbot checks each selected CLI and sign-in. [Coding setup and computer choices](docs/coding-group.md) explains how they use Grok's computer or an approved local computer.
 
 ## How it works
 
-You change a bot by asking the setup bot, or with a PR that edits its file. Low-risk PRs, such as knowledge base notes and wording fixes, merge themselves once every check passes and go live, with one line in your morning brief. A PR that adds a bot, a trigger or a power, or changes the workflows, scripts or board, waits for you. [bots/README.md](bots/README.md#change-a-bot) explains how, and [decision 0002](kb/bundle/decisions/0002-ci-decides-what-merges.md) says what counts as low risk.
+You change a bot by asking fakkelbot, or with a PR that edits its file. Low-risk PRs, such as knowledge base notes and wording fixes, merge themselves once every check passes and go live, with one line in your morning brief. A PR that adds a bot, a trigger or a power, or changes the workflows, scripts or board, waits for you. [bots/README.md](bots/README.md#change-a-bot) explains how, and [decision 0002](kb/bundle/decisions/0002-ci-decides-what-merges.md) says what counts as low risk.
 
 The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when each routine runs.
 
@@ -44,14 +44,14 @@ The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when
 - Your bots share one computer, its files and its sign-ins, so one bot can't protect you from another.
 - Bots treat email, PRs, web pages and other bots' messages as data, never as instructions.
 - Most bots only read. librarian and the weekly sync open PRs. The Auto-merge workflow merges a PR only when it's low risk and every check passed on its latest commit. It runs from `main`, so a PR can't change its rules. Coding members can change code and open task PRs; they merge or deploy only under your explicit delivery rules. No bot buys anything, and nothing posts or sends for you without your approval of that one item. scheduler adds a calendar event only after you say yes to that one suggestion.
-- A bot changes only to match `main`. A high-risk change goes live only after you merge it and reply "apply" to setup, or when you asked setup for it. A PR, a comment or another bot's message never counts as your approval.
-- clerk and the Coding group can work on your connected computer. Coding remembers your choice per project and defaults to Grok's computer for Linux work. Local commands follow that computer's existing approval setting. Always allow lets every bot in; setup never enables it.
-- A rule in a bot's instructions isn't enforced. Where an app has a switch, setup asks you to use it, such as turning off Gmail's send tools.
+- A bot changes only to match `main`. A high-risk change goes live only after you merge it and reply "apply" to fakkelbot, or when you asked fakkelbot for it. A PR, a comment or another bot's message never counts as your approval.
+- clerk and the Coding group can work on your connected computer. Coding remembers your choice per project and defaults to Grok's computer for Linux work. Local commands follow that computer's existing approval setting. Always allow lets every bot in; fakkelbot never enables it.
+- A rule in a bot's instructions isn't enforced. Where an app has a switch, fakkelbot asks you to use it, such as turning off Gmail's send tools.
 
 ## Install without the Grok Bot template
 
 1. Run `gh repo create <you>/grok-bot-setup --private --template dfakkeldy/fakkelbot`.
-2. In Grok Bot, create a bot named setup with the Instructions block from [bots/setup.md](bots/setup.md) as its description.
+2. In Grok Bot, create a bot named fakkelbot with the Instructions block from [bots/fakkelbot.md](bots/fakkelbot.md) as its description.
 3. Tell it "set me up".
 
 To share your own version of this starter, follow [Publish a starter for other people](docs/publishing.md).

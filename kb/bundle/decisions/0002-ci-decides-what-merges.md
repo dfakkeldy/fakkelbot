@@ -2,10 +2,8 @@
 type: Decision
 title: CI decides what merges
 description: Low-risk PRs merge themselves once every check passes on their head commit, the bots follow main, and the owner decides only high-risk changes.
-tags:
-  - pull-requests
-  - auto-merge
-timestamp: 2026-10-15T21:50:05-03:00
+tags: [pull-requests, auto-merge]
+generated: { by: claude-code/claude-opus-5-5, at: 2026-10-15T21:50:05-03:00 }
 ---
 
 # 0002. CI decides what merges

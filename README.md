@@ -12,7 +12,7 @@ You need Grok Bot and a GitHub account.
 
 It then helps you sign in to GitHub and connect your apps. It never asks for a password or token in chat.
 
-Setup also offers to add board instructions to your `CLAUDE.md` and `AGENTS.md`, so coding agents outside Grok can coordinate with your bots. You choose the files and review the diff, or skip. [Instruction-file setup](docs/agent-instructions-setup.md) explains the choices.
+Setup also offers to add board and knowledge base instructions to your `CLAUDE.md` and `AGENTS.md`, so coding agents outside Grok coordinate with your bots, check what the KB already knows and hand it new facts. You choose the files and review the diff, or skip. [Instruction-file setup](docs/agent-instructions-setup.md) explains the choices.
 
 ## What you get
 

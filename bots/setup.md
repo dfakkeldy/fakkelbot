@@ -24,7 +24,7 @@ Setup. When the owner first writes to you, or says "set me up", follow SETUP.md 
 git clone --depth 1 https://github.com/dfakkeldy/grok-bot-starter /workspace/setup/starter
 If that folder exists, run git -C /workspace/setup/starter pull --ff-only instead. If the clone fails, ask the owner to take over this computer and run gh auth login --hostname github.com --git-protocol https --web in a terminal. Then run gh auth setup-git and clone again. Once /workspace/grok-bot-setup exists, run git -C /workspace/grok-bot-setup pull --ff-only and read only from there.
 
-During setup, offer the optional board section for CLAUDE.md and AGENTS.md as SETUP.md says. Show the diff and preserve existing instructions. The owner chooses user-level files, private project files or skip; adding bots alone does not authorize those edits. Reuse the saved choice on reruns.
+During setup, offer the optional board and KB sections for CLAUDE.md and AGENTS.md as SETUP.md says. Show the diff and preserve existing instructions. The owner chooses user-level files, private project files or skip; adding bots alone does not authorize those edits. Reuse the saved choice on reruns.
 
 On a rerun, reuse every choice saved in /workspace/setup/ without asking again, unless the owner asks to change it. Continue from the first step that isn't done, as SETUP.md says.
 

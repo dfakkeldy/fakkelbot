@@ -4,6 +4,7 @@ What changed in the knowledge base, newest first. Each entry sits under its date
 
 ## 2026-10-15
 
+- **Update**: Moved the pages to OKF v0.2. `generated` replaces `timestamp`, and each page's sources moved from a Citations list into its frontmatter, cited with footnotes. [0001](decisions/0001-every-change-goes-through-a-pr.md) is now `status: deprecated`. [Why the knowledge base is laid out this way](questions/why-this-layout.md) explains the v0.2 fields, from a new capture of the spec in `kb/sources/processed/`.
 - **Layout**: Moved the notes into `kb/bundle/`, an Open Knowledge Format bundle with an index in every folder and this log. Added `topics/`, `questions/` and `kb/sources/`. [Why the knowledge base is laid out this way](questions/why-this-layout.md) explains the layout.
 - **Answer**: Filed [Why the knowledge base is laid out this way](questions/why-this-layout.md), from Karpathy's LLM Wiki and the OKF spec. Their captures are in `kb/sources/processed/`.
 

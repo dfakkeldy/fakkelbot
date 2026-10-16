@@ -1,23 +1,31 @@
 #!/usr/bin/env python3
 """Check the knowledge base.
 
-The pages live in kb/bundle/, an Open Knowledge Format (OKF) v0.1 bundle.
+The pages live in kb/bundle/, an Open Knowledge Format (OKF) v0.2 bundle.
 The lint fails when:
 
 - kb/ holds anything but README.md, AGENTS.md, bundle/, sources/, templates/
   and tools/, or bundle/ holds a folder it doesn't know or a folder inside a
   folder.
-- A page lacks type, title, description or timestamp, or its timestamp isn't
-  an ISO 8601 date and time with a UTC offset.
+- A page's frontmatter doesn't parse, or lacks type, title, description or
+  generated: { by, at }. Every by is an actor and every timestamp is an ISO
+  8601 date and time with its UTC offset.
+- A page still uses the v0.1 timestamp field or a Citations heading.
+- verified, status, stale_after or superseded_by has a bad value. A page with
+  superseded_by has status deprecated.
 - A page outside decisions/ has type Decision, or a page in decisions/ has
   another type. The Auto-merge workflow holds decisions/ for the owner.
-- A page in questions/, references/ or topics/ has no Citations heading.
-- superseded_by doesn't name a page in the bundle, written /folder/page.md.
+- A page in questions/, references/ or topics/ lists no sources, a source has
+  no resource, or a footnote doesn't match a source id and a definition line.
 - A local link points to nothing, or a link leaves the repository. A link that
   starts with / resolves from bundle/ and must stay in it.
 - A folder has no index.md, its index.md doesn't list one of its pages, or
-  bundle/index.md doesn't list a folder's index.md.
+  bundle/index.md doesn't list a folder.
 - log.md has a ## heading that isn't a date, or its dates aren't newest first.
+
+The frontmatter reader takes the YAML that kb/templates/ uses: key: value
+lines, nested blocks indented with spaces, - lists, one-level [a, b] and
+{ key: value } values, quotes and # comments.
 
 Usage: python3 kb/tools/kb_lint.py [kb_dir]
 """
@@ -29,40 +37,203 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 FOLDERS = ("decisions", "projects", "questions", "references", "topics")
-CITED_FOLDERS = {"questions", "references", "topics"}
+SOURCED_FOLDERS = {"questions", "references", "topics"}
 KB_ENTRIES = ("README.md", "AGENTS.md", "bundle/", "sources/", "templates/", "tools/")
 RESERVED = {"index.md", "log.md"}
-REQUIRED_FIELDS = ("type", "title", "description", "timestamp")
+REQUIRED_TEXT = ("type", "title", "description")
+STATUSES = ("draft", "stable", "deprecated")
 DECISION = "Decision"
 
 LINK_RE = re.compile(r"\[[^\]]*\]\(([^)\s]+)[^)]*\)")
 INLINE_CODE_RE = re.compile(r"`[^`]*`")
-CITATIONS_RE = re.compile(r"^#{1,2}\s*Citations\s*$", re.MULTILINE)
+FOOTNOTE_RE = re.compile(r"\[\^([^\]\s]+)\](?!:)")
+FOOTNOTE_DEF_RE = re.compile(r"^\[\^([^\]\s]+)\]:")
+CITATIONS_RE = re.compile(r"^#{1,6}\s*Citations\s*$", re.MULTILINE)
 TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$")
+ACTOR_RE = re.compile(r"^(?:(?:human|process|team):\S+|[\w.-]+/[^\s/]+)$")
+KEY_RE = re.compile(r"^([A-Za-z_][\w.-]*):(?:[ \t]+(.*))?$")
 FENCE = ("```", "~~~")
+TIMESTAMP_HINT = "is not an ISO 8601 date and time with its UTC offset, such as 2026-10-15T09:30:00-03:00"
+ACTOR_HINT = "is not an actor, such as human:owner, process:nightly or librarian/grok-bot"
 
 
-def frontmatter(lines):
+# Frontmatter
+
+
+class FrontmatterError(Exception):
+    pass
+
+
+def strip_comment(text):
+    quote = None
+    for i, ch in enumerate(text):
+        if quote:
+            if ch == quote:
+                quote = None
+        elif ch in "\"'" and text[:i].rstrip()[-1:] in ("", ":", "[", "{", ",", "-"):
+            quote = ch
+        elif ch == "#" and (i == 0 or text[i - 1] in " \t"):
+            return text[:i].rstrip()
+    return text.rstrip()
+
+
+def scalar(text, number):
+    text = text.strip()
+    if text[:1] in ("'", '"'):
+        if len(text) < 2 or text[-1] != text[0]:
+            raise FrontmatterError(f"line {number}: a quote isn't closed")
+        inner = text[1:-1]
+        return inner.replace("''", "'") if text[0] == "'" else inner.replace('\\"', '"')
+    if text in ("~", "null"):
+        return ""
+    return text
+
+
+def split_flow(inner, number):
+    parts, part, quote = [], "", None
+    for ch in inner:
+        if quote:
+            quote = None if ch == quote else quote
+        elif ch in "\"'" and not part.strip():
+            quote = ch
+        elif ch in "[]{}":
+            raise FrontmatterError(f"line {number}: a [ ] or {{ }} inside another isn't supported")
+        elif ch == ",":
+            parts.append(part)
+            part = ""
+            continue
+        part += ch
+    if quote:
+        raise FrontmatterError(f"line {number}: a quote isn't closed")
+    parts.append(part)
+    return [p for p in parts if p.strip()]
+
+
+def value_of(text, number):
+    text = text.strip()
+    opener, closer = text[:1], {"[": "]", "{": "}"}.get(text[:1])
+    if closer is None:
+        return scalar(text, number)
+    if text[-1:] != closer:
+        raise FrontmatterError(f"line {number}: {opener} isn't closed on the same line")
+    parts = split_flow(text[1:-1], number)
+    if opener == "[":
+        return [scalar(part, number) for part in parts]
+    mapping = {}
+    for part in parts:
+        key, colon, value = part.partition(":")
+        if not colon or not key.strip():
+            raise FrontmatterError(f'line {number}: "{part.strip()}" needs the form key: value')
+        mapping[key.strip()] = scalar(value, number)
+    return mapping
+
+
+def is_item(text):
+    return text == "-" or text.startswith("- ")
+
+
+def parse_block(rows, i, indent):
+    if is_item(rows[i][2]):
+        return parse_list(rows, i, indent)
+    return parse_map(rows, i, indent)
+
+
+def parse_map(rows, i, indent):
+    mapping = {}
+    while i < len(rows) and rows[i][1] == indent and not is_item(rows[i][2]):
+        number, _, text = rows[i]
+        match = KEY_RE.match(text)
+        if not match:
+            raise FrontmatterError(f"line {number}: expected key: value")
+        key, rest = match.groups()
+        if key in mapping:
+            raise FrontmatterError(f'line {number}: "{key}" appears twice')
+        i += 1
+        if rest:
+            mapping[key] = value_of(rest, number)
+        elif i < len(rows) and (rows[i][1] > indent or (rows[i][1] == indent and is_item(rows[i][2]))):
+            mapping[key], i = parse_block(rows, i, rows[i][1])
+        else:
+            mapping[key] = ""
+    if i < len(rows) and rows[i][1] > indent:
+        raise FrontmatterError(f"line {rows[i][0]}: unexpected indentation")
+    return mapping, i
+
+
+def parse_list(rows, i, indent):
+    items = []
+    while i < len(rows) and rows[i][1] == indent and is_item(rows[i][2]):
+        number, _, text = rows[i]
+        rest = text[1:].lstrip(" ")
+        if not rest:
+            i += 1
+            if i < len(rows) and rows[i][1] > indent:
+                value, i = parse_block(rows, i, rows[i][1])
+            else:
+                value = ""
+        elif KEY_RE.match(rest):
+            rows[i] = (number, indent + len(text) - len(rest), rest)
+            value, i = parse_map(rows, i, rows[i][1])
+        else:
+            value = value_of(rest, number)
+            i += 1
+        items.append(value)
+    if i < len(rows) and rows[i][1] > indent:
+        raise FrontmatterError(f"line {rows[i][0]}: unexpected indentation")
+    return items, i
+
+
+def parse_frontmatter(lines):
+    """Read frontmatter lines into dicts, lists and strings."""
+    rows = []
+    for number, line in enumerate(lines, 2):
+        stripped = line.lstrip(" ")
+        if stripped.startswith("\t"):
+            raise FrontmatterError(f"line {number}: indent with spaces, not tabs")
+        text = strip_comment(stripped)
+        if text:
+            rows.append((number, len(line) - len(stripped), text))
+    if not rows:
+        return {}
+    mapping, i = parse_map(rows, 0, rows[0][1])
+    if i < len(rows):
+        raise FrontmatterError(f"line {rows[i][0]}: unexpected indentation")
+    return mapping
+
+
+def split_page(text):
+    """Return the frontmatter lines and the body, or None without a closed block."""
+    lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
         return None
-    fields = {}
-    for line in lines[1:]:
+    for n, line in enumerate(lines[1:], 1):
         if line.strip() == "---":
-            return fields
-        key, colon, value = line.partition(":")
-        if colon:
-            fields[key.strip()] = value.strip().strip("\"'")
+            return lines[1:n], "\n".join(lines[n + 1:])
     return None
 
 
 def is_timestamp(value):
-    if not TIMESTAMP_RE.match(value):
+    if not isinstance(value, str) or not TIMESTAMP_RE.match(value):
         return False
     try:
         datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return False
     return True
+
+
+def is_date(value):
+    try:
+        return date.fromisoformat(value).isoformat() == value
+    except (TypeError, ValueError):
+        return False
+
+
+def is_actor(value):
+    return isinstance(value, str) and bool(ACTOR_RE.match(value))
+
+
+# Body
 
 
 def outside_fences(text):
@@ -77,6 +248,20 @@ def outside_fences(text):
 def link_targets(text):
     for line in outside_fences(text):
         yield from LINK_RE.findall(INLINE_CODE_RE.sub("", line))
+
+
+def footnotes(body):
+    """Return the footnote labels used in the body and the labels defined."""
+    used, defined = [], set()
+    for line in outside_fences(body):
+        line = INLINE_CODE_RE.sub("", line)
+        definition = FOOTNOTE_DEF_RE.match(line)
+        if definition:
+            defined.add(definition.group(1))
+        for label in FOOTNOTE_RE.findall(line):
+            if label not in used:
+                used.append(label)
+    return used, defined
 
 
 def local_target(target, page, bundle):
@@ -131,34 +316,118 @@ class Lint:
 
     def check_page(self, page, text):
         folder = page.relative_to(self.bundle).parts[0]
-        fields = frontmatter(text.splitlines())
-        if fields is None:
+        split = split_page(text)
+        if split is None:
             self.report(page, "no frontmatter block between --- lines")
             return
-        for field in REQUIRED_FIELDS:
+        lines, body = split
+        try:
+            fields = parse_frontmatter(lines)
+        except FrontmatterError as err:
+            self.report(page, f"frontmatter {err}")
+            return
+        for field in REQUIRED_TEXT:
             if field not in fields:
                 self.report(page, f'missing frontmatter field "{field}"')
+            elif not isinstance(fields[field], str):
+                self.report(page, f'frontmatter field "{field}" must be text')
             elif not fields[field]:
                 self.report(page, f'empty frontmatter field "{field}"')
-        page_type = fields.get("type", "")
-        if folder == "decisions" and page_type and page_type != DECISION:
+        self.check_type(page, folder, fields.get("type"))
+        self.check_trust(page, fields)
+        self.check_lifecycle(page, fields)
+        self.check_sources(page, folder, fields, body)
+
+    def check_type(self, page, folder, page_type):
+        if not isinstance(page_type, str) or not page_type:
+            return
+        if folder == "decisions" and page_type != DECISION:
             self.report(page, f'type is "{page_type}", but pages in decisions/ need "{DECISION}"')
         elif folder != "decisions" and page_type.lower() == DECISION.lower():
             self.report(page, f'type "{page_type}" belongs only in decisions/')
-        timestamp = fields.get("timestamp")
-        if timestamp and not is_timestamp(timestamp):
-            self.report(
-                page,
-                f'timestamp "{timestamp}" is not an ISO 8601 date and time with its UTC offset, '
-                "such as 2026-10-15T09:30:00-03:00",
-            )
-        if folder in CITED_FOLDERS and not CITATIONS_RE.search(text):
-            self.report(page, 'no "## Citations" heading')
+
+    def check_event(self, page, field, event):
+        if not isinstance(event, dict):
+            self.report(page, f"{field} must be {{ by, at }}")
+            return
+        if not is_actor(event.get("by")):
+            self.report(page, f'{field}.by "{event.get("by", "")}" {ACTOR_HINT}')
+        if not is_timestamp(event.get("at")):
+            self.report(page, f'{field}.at "{event.get("at", "")}" {TIMESTAMP_HINT}')
+
+    def check_trust(self, page, fields):
+        if "timestamp" in fields:
+            self.report(page, "timestamp is OKF v0.1. Write generated: { by, at } instead")
+        if "generated" not in fields:
+            self.report(page, 'missing frontmatter field "generated"')
+        else:
+            self.check_event(page, "generated", fields["generated"])
+        verified = fields.get("verified")
+        if verified is None:
+            return
+        events = verified if isinstance(verified, list) else [verified]
+        if not events:
+            self.report(page, "verified must be { by, at } or a list of them")
+        for event in events:
+            self.check_event(page, "verified", event)
+
+    def check_lifecycle(self, page, fields):
+        status = fields.get("status")
+        if status is not None and status not in STATUSES:
+            self.report(page, f'status "{status}" is not {", ".join(STATUSES[:-1])} or {STATUSES[-1]}')
+        if "stale_after" in fields and not is_timestamp(fields["stale_after"]):
+            self.report(page, f'stale_after "{fields["stale_after"]}" {TIMESTAMP_HINT}')
         replaced_by = fields.get("superseded_by")
-        if replaced_by is not None:
+        if replaced_by is None:
+            return
+        target = None
+        if isinstance(replaced_by, str) and replaced_by.startswith("/"):
             target = local_target(replaced_by, page, self.bundle)
-            if not (replaced_by.startswith("/") and target and inside(target, self.bundle) and target.is_file()):
-                self.report(page, f'superseded_by "{replaced_by}" is not a page in the bundle, written /folder/page.md')
+        if not (target and inside(target, self.bundle) and target.is_file()):
+            self.report(page, f'superseded_by "{replaced_by}" is not a page in the bundle, written /folder/page.md')
+        if status != "deprecated":
+            self.report(page, "superseded_by is set, so status must be deprecated")
+
+    def check_sources(self, page, folder, fields, body):
+        if CITATIONS_RE.search(body):
+            self.report(page, "a Citations heading is OKF v0.1. List sources in the frontmatter and cite them with footnotes")
+        sources = fields.get("sources")
+        if sources is None or sources == "":
+            sources = []
+            if folder in SOURCED_FOLDERS:
+                self.report(page, f"no sources. Pages in {', '.join(sorted(SOURCED_FOLDERS))} list theirs in the frontmatter")
+        elif not isinstance(sources, list):
+            self.report(page, "sources must be a list")
+            sources = []
+        ids = set()
+        for number, source in enumerate(sources, 1):
+            if not isinstance(source, dict):
+                self.report(page, f"source {number} must be a mapping with a resource")
+                continue
+            label = f'source "{source["id"]}"' if source.get("id") else f"source {number}"
+            if not source.get("resource"):
+                self.report(page, f"{label} has no resource")
+            if source.get("id"):
+                if source["id"] in ids:
+                    self.report(page, f"{label} appears twice")
+                ids.add(source["id"])
+            if "author" in source and not is_actor(source["author"]):
+                self.report(page, f'{label}: author "{source["author"]}" {ACTOR_HINT}')
+            if "checked" in source and not is_date(source["checked"]):
+                self.report(page, f'{label}: checked "{source["checked"]}" is not a YYYY-MM-DD date')
+            if "last_modified" in source and not is_timestamp(source["last_modified"]):
+                self.report(page, f'{label}: last_modified "{source["last_modified"]}" {TIMESTAMP_HINT}')
+            capture = source.get("capture")
+            if capture:
+                path = local_target(capture, page, self.bundle) if isinstance(capture, str) else None
+                if path is None or not inside(path, self.repo) or not path.is_file():
+                    self.report(page, f'{label}: capture "{capture}" is not a file in the repository')
+        used, defined = footnotes(body)
+        for label in used:
+            if label not in ids:
+                self.report(page, f"footnote [^{label}] has no source with that id")
+            if label not in defined:
+                self.report(page, f"footnote [^{label}] has no definition line")
 
     def check_links(self, page, text):
         for target in link_targets(text):
@@ -175,8 +444,12 @@ class Lint:
     def listed(self, index):
         if not index.is_file():
             return set()
-        targets = (local_target(t, index, self.bundle) for t in link_targets(index.read_text(encoding="utf-8")))
-        return {target for target in targets if target is not None}
+        listed = set()
+        for target in link_targets(index.read_text(encoding="utf-8")):
+            path = local_target(target, index, self.bundle)
+            if path is not None:
+                listed.add(path / "index.md" if path.is_dir() else path)
+        return listed
 
     def check_indexes(self):
         root_listed = self.listed(self.bundle / "index.md")
@@ -204,13 +477,10 @@ class Lint:
             if not line.startswith("## "):
                 continue
             heading = line[3:].strip()
-            try:
-                day = date.fromisoformat(heading)
-            except ValueError:
-                day = None
-            if day is None or day.isoformat() != heading:
+            if not is_date(heading):
                 self.report(log, f'heading "{line.strip()}" is not a date written YYYY-MM-DD')
                 continue
+            day = date.fromisoformat(heading)
             if newer and day > newer:
                 self.report(log, f"{heading} comes after {newer.isoformat()}, but the newest date goes first")
             newer = day

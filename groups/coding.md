@@ -12,9 +12,9 @@ Choose all three or any subset. A group needs at least two members. A single cho
 
 ## Create the group
 
-Setup creates the chosen bots and checks their CLIs by following [Coding setup](../docs/coding-group.md#setup). It then creates or helps you create a group named **Coding** with those members. Use the actual group tools if available; otherwise choose **New** in Grok Bot's sidebar, select the chosen bots and rename the group. Check an existing group's members before changing it; never overwrite an unrelated group with the same name.
+fakkelbot creates the chosen bots and checks their CLIs by following [Coding setup](../docs/coding-group.md#setup). It then creates or helps you create a group named **Coding** with those members. Use the actual group tools if available; otherwise choose **New** in Grok Bot's sidebar, select the chosen bots and rename the group. Check an existing group's members before changing it; never overwrite an unrelated group with the same name.
 
-Send the message below as the group's kickoff, with the saved default worker's name in place of `<default-worker>`. It explains the workflow; each bot's standing instructions live in its own file under `bots/` and change through setup's usual "apply" process.
+Send the message below as the group's kickoff, with the saved default worker's name in place of `<default-worker>`. It explains the workflow; each bot's standing instructions live in its own file under `bots/` and change through fakkelbot's usual "apply" process.
 
 ```text
 Use your named CLI to carry my assigned tasks through implementation, relevant checks and delivery. You all have the same job, with different tools available for implementation and second opinions.

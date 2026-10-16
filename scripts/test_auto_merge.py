@@ -49,7 +49,7 @@ class PathTiers(unittest.TestCase):
         for path in (
             ".github/workflows/kb-lint.yml", "scripts/auto_merge.py", "board/board.py",
             "kb/bundle/decisions/0003-x.md", "kb/AGENTS.md", "kb/tools/kb_lint.py", "kb/templates/note.md",
-            "SETUP.md", "LICENSE", ".gitignore", ".gitattributes", "groups/coding.md", "bots/setup.md", "bots/sub/x.md",
+            "SETUP.md", "LICENSE", ".gitignore", ".gitattributes", "groups/coding.md", "bots/fakkelbot.md", "bots/sub/x.md",
         ):
             with self.subTest(path=path):
                 result, reasons = tier(FileChange(path, "modified", None, "x", "y"))

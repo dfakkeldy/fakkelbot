@@ -8,7 +8,7 @@ Times are in the owner's timezone, like the schedules in the bot files. [scripts
 
 ### Hand-offs and what wakes each bot
 
-Grey arrows are hand-offs between bots. The table of every edge below says where each one appears. Thick amber arrows are GitHub events that wake a bot. A bot's colour is its category: green for Daily life, blue for Work, purple for Builders and orange for Content. A pale bot with a dashed outline is one that setup adds only when the owner asks for it.
+Grey arrows are hand-offs between bots. The table of every edge below says where each one appears. Thick amber arrows are GitHub events that wake a bot. A bot's colour is its category: green for Daily life, blue for Work, purple for Builders and orange for Content. A pale bot with a dashed outline is one that fakkelbot adds only when the owner asks for it.
 
 ```mermaid
 %%{init: {"flowchart": {"curve": "basis"}}}%%
@@ -18,6 +18,7 @@ flowchart TB
     bot_codex("codex")
     bot_cursor("cursor")
     bot_editor("editor")
+    bot_fakkelbot("fakkelbot")
     bot_inbox("inbox")
     bot_jobscout("jobscout")
     bot_liaison("liaison")
@@ -26,7 +27,6 @@ flowchart TB
     bot_pr_watch("pr-watch")
     bot_researcher("researcher")
     bot_scheduler("scheduler")
-    bot_setup("setup")
     fan_each_affected_bot(["each affected bot"])
     sys_github["GitHub"]
     bot_claude --> bot_liaison
@@ -39,6 +39,8 @@ flowchart TB
     bot_cursor --> bot_librarian
     bot_editor --> bot_liaison
     bot_editor --> bot_librarian
+    bot_fakkelbot --> fan_each_affected_bot
+    bot_fakkelbot --> bot_liaison
     bot_inbox --> bot_jobscout
     bot_inbox --> bot_liaison
     bot_inbox --> bot_librarian
@@ -56,9 +58,7 @@ flowchart TB
     bot_researcher --> bot_librarian
     bot_scheduler --> bot_liaison
     bot_scheduler --> bot_librarian
-    bot_setup --> fan_each_affected_bot
-    bot_setup --> bot_liaison
-    sys_github ==>|"wakes: apply"| bot_setup
+    sys_github ==>|"wakes: apply"| bot_fakkelbot
     classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
     class bot_claude,bot_codex,bot_cursor builders_optional
     classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
@@ -66,7 +66,7 @@ flowchart TB
     classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
     class bot_editor content_optional
     classDef daily_life fill:#1a7f37,stroke:#1a7f37,color:#ffffff
-    class bot_inbox,bot_liaison,bot_setup daily_life
+    class bot_fakkelbot,bot_inbox,bot_liaison daily_life
     classDef work_optional fill:#0969da26,stroke:#0969da,stroke-width:2px,stroke-dasharray:5 3
     class bot_jobscout work_optional
     classDef work fill:#0969da,stroke:#0969da,color:#ffffff
@@ -92,13 +92,13 @@ flowchart TB
     bot_codex("codex")
     bot_cursor("cursor")
     bot_editor("editor")
+    bot_fakkelbot("fakkelbot")
     bot_inbox("inbox")
     bot_liaison("liaison")
     bot_librarian("librarian")
     bot_pr_watch("pr-watch")
     bot_researcher("researcher")
     bot_scheduler("scheduler")
-    bot_setup("setup")
     sys_github["GitHub"]
     sys_kb["knowledge base"]
     sys_board["agent board"]
@@ -118,6 +118,7 @@ flowchart TB
     bot_cursor --> sys_cursor_cli
     bot_editor --> sys_github
     bot_editor --> sys_kb
+    bot_fakkelbot --> sys_github
     bot_inbox --> sys_gmail
     bot_liaison --> sys_board
     bot_librarian --> sys_github
@@ -126,13 +127,12 @@ flowchart TB
     bot_pr_watch --> sys_github
     bot_researcher --> sys_kb
     bot_scheduler --> sys_gcal
-    bot_setup --> sys_github
     classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
     class bot_claude,bot_codex,bot_cursor builders_optional
     classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
     class bot_editor content_optional
     classDef daily_life fill:#1a7f37,stroke:#1a7f37,color:#ffffff
-    class bot_inbox,bot_liaison,bot_setup daily_life
+    class bot_fakkelbot,bot_inbox,bot_liaison daily_life
     classDef work fill:#0969da,stroke:#0969da,color:#ffffff
     class bot_librarian,bot_researcher work
     classDef builders fill:#8250df,stroke:#8250df,color:#ffffff
@@ -158,6 +158,8 @@ flowchart TB
 | cursor | librarian | hands off to | instructions |
 | editor | liaison | hands off to | instructions |
 | editor | librarian | hands off to | instructions |
+| fakkelbot | each affected bot | hands off to | instructions |
+| fakkelbot | liaison | hands off to | instructions |
 | inbox | jobscout | hands off to | instructions, inbox-sweep |
 | inbox | liaison | hands off to | instructions |
 | inbox | librarian | hands off to | instructions |
@@ -175,9 +177,7 @@ flowchart TB
 | researcher | librarian | hands off to | instructions, watch-topics |
 | scheduler | liaison | hands off to | instructions |
 | scheduler | librarian | hands off to | instructions |
-| setup | each affected bot | hands off to | instructions |
-| setup | liaison | hands off to | instructions |
-| GitHub | setup | wakes | apply |
+| GitHub | fakkelbot | wakes | apply |
 | claude | GitHub | uses | instructions |
 | claude | agent board | uses | instructions |
 | claude | Claude Code | uses | instructions |
@@ -189,6 +189,7 @@ flowchart TB
 | cursor | Cursor Agent | uses | instructions |
 | editor | GitHub | uses | weekly-ideas |
 | editor | knowledge base | uses | instructions |
+| fakkelbot | GitHub | uses | instructions, apply, weekly-sync |
 | inbox | Gmail | uses | instructions, inbox-sweep |
 | liaison | agent board | uses | instructions, board-sync |
 | librarian | GitHub | uses | daily-harvest |
@@ -197,7 +198,6 @@ flowchart TB
 | pr-watch | GitHub | uses | instructions, pr-sweep |
 | researcher | knowledge base | uses | instructions |
 | scheduler | Google Calendar | uses | instructions |
-| setup | GitHub | uses | instructions, apply, weekly-sync |
 
 ## A day of scheduled routines
 
@@ -206,7 +206,7 @@ flowchart TB
   <img alt="A day of scheduled routines, with one row per routine and a dot at each start time. The tables below list the same times." src="bot-chart-schedule-light.svg">
 </picture>
 
-Each dot is a routine's start time. A filled dot on the left marks a bot setup adds by default, and a ring marks an optional one.
+Each dot is a routine's start time. A filled dot on the left marks a bot that fakkelbot adds by default, and a ring marks an optional one.
 
 Routines that only run on GitHub events are in the tables below.
 
@@ -233,6 +233,13 @@ No routines.
 | Routine | Schedule | Trigger | Enabled |
 |---|---|---|---|
 | weekly-ideas | Mondays at 08:00 | none | yes |
+
+### fakkelbot
+
+| Routine | Schedule | Trigger | Enabled |
+|---|---|---|---|
+| apply | none | pr-merged in grok-bot-setup | yes |
+| weekly-sync | Sundays at 18:00 | none | yes |
 
 ### inbox
 
@@ -286,10 +293,3 @@ No routines.
 | look-ahead | Mon to Sat at 21:00 | none | yes |
 | morning-check | daily at 07:00 | none | yes |
 | week-ahead | Sundays at 21:00 | none | yes |
-
-### setup
-
-| Routine | Schedule | Trigger | Enabled |
-|---|---|---|---|
-| apply | none | pr-merged in grok-bot-setup | yes |
-| weekly-sync | Sundays at 18:00 | none | yes |

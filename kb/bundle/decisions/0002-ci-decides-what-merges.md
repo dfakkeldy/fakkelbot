@@ -3,12 +3,12 @@ type: Decision
 title: CI decides what merges
 description: Low-risk PRs merge themselves once every check passes on their head commit, the bots follow main, and the owner decides only high-risk changes.
 tags: [pull-requests, auto-merge]
-generated: { by: claude-code/claude-opus-5-5, at: 2026-10-15T21:50:05-03:00 }
+generated: { by: claude-code/claude-opus-5-5, at: 2026-10-16T09:23:37-03:00 }
 ---
 
 # 0002. CI decides what merges
 
-Accepted on 2026-10-14. It replaces [0001. Every change goes through a PR](0001-every-change-goes-through-a-pr.md). On 2026-10-15 the KB paths below were updated when the notes moved into `kb/bundle/`. The decision itself didn't change.
+Accepted on 2026-10-14. It replaces [0001. Every change goes through a PR](0001-every-change-goes-through-a-pr.md). On 2026-10-15 the KB paths below were updated when the notes moved into `kb/bundle/`. On 2026-10-16 the bot named setup was renamed fakkelbot, and its file moved from `bots/setup.md` to `bots/fakkelbot.md`. The decision itself didn't change either time.
 
 ## Context
 
@@ -25,23 +25,23 @@ All of an account's bots share one computer, with its files and sign-ins ([appro
 - Every change still goes through a PR against `main`, and no bot pushes to `main`.
 - The Auto-merge workflow merges a PR by itself when all of these hold:
   - The PR is open, isn't a draft, targets `main` and comes from a branch in the same repo. It has no `hold` label.
-  - It changes only low-risk paths: notes and sources in `kb/`, `docs/`, `README.md`, and wording in `bots/*.md`. `kb/bundle/decisions/`, `kb/AGENTS.md`, `kb/tools/`, `kb/templates/` and `bots/setup.md` aren't low risk.
+  - It changes only low-risk paths: notes and sources in `kb/`, `docs/`, `README.md`, and wording in `bots/*.md`. `kb/bundle/decisions/`, `kb/AGENTS.md`, `kb/tools/`, `kb/templates/` and `bots/fakkelbot.md` aren't low risk.
   - A bot file change adds no bot, routine or trigger, turns no routine on, adds no words about a power, drops no safety rule and changes at most 40 lines. Powers include merging, deleting, buying, sending email, posting publicly, approvals, secrets and connectors. A sync export is judged the same way.
   - Every check workflow that applies to the PR passed on its current head commit, with every job in it. A workflow whose path filter skips the PR, such as Board tests on a docs-only PR, isn't required.
   - It merges with `gh pr merge --squash --match-head-commit`, so a commit pushed after the checks ran can't slip in.
-- Everything else waits for the owner. That covers `.github/`, `scripts/`, `board/`, `SETUP.md`, setup's own file, a new or renamed bot, a new routine or trigger, a new power and anything the workflow can't judge.
+- Everything else waits for the owner. That covers `.github/`, `scripts/`, `board/`, `SETUP.md`, fakkelbot's own file, a new or renamed bot, a new routine or trigger, a new power and anything the workflow can't judge.
 - The workflow starts through `workflow_run`, so GitHub runs it from `main`, and a PR can't change the rules that judge it. It reads the PR through the GitHub API as data, and never runs the PR's code. Its rules are in `scripts/auto_merge.py`, and a change to them waits for the owner.
-- `main` is what the bots should have. setup applies a bot change from current `main`, never from an older commit.
-  - A PR the workflow merged goes live at once. setup puts one line in the owner's morning brief.
-  - A PR merged by the owner's account goes live at once if the owner asked setup for that change in setup's chat. The owner's request covers its whole scope: the design, the PR, the merge and the apply. Otherwise setup asks once whether to apply or revert it.
-- "revert" replaces "skip". Leaving a merged change unapplied keeps `main` and the bots apart, so setup opens a PR that reverts it instead.
+- `main` is what the bots should have. fakkelbot applies a bot change from current `main`, never from an older commit.
+  - A PR the workflow merged goes live at once. fakkelbot puts one line in the owner's morning brief.
+  - A PR merged by the owner's account goes live at once if the owner asked fakkelbot for that change in fakkelbot's chat. The owner's request covers its whole scope: the design, the PR, the merge and the apply. Otherwise fakkelbot asks once whether to apply or revert it.
+- "revert" replaces "skip". Leaving a merged change unapplied keeps `main` and the bots apart, so fakkelbot opens a PR that reverts it instead.
 - Approval from another bot still never counts as the owner's approval.
 
 ## Why
 
 - CI checks the actual diff every time. The owner's attention goes to the few changes that add a power or change the rules.
 - Running from `main` and matching the head commit close the obvious ways around the check: a PR that edits its own rules, and a push after the checks passed.
-- Applying `main` means an older PR never undoes a newer one, and weekly-sync compares the bots with the same text setup applies.
+- Applying `main` means an older PR never undoes a newer one, and weekly-sync compares the bots with the same text fakkelbot applies.
 
 Options turned down:
 

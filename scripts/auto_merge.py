@@ -54,7 +54,7 @@ PATH_RULES: Tuple[Tuple[str, str, str], ...] = (
     ("kb/**", LOW, ""),
     ("docs/**", LOW, ""),
     ("README.md", LOW, ""),
-    ("bots/setup.md", HIGH, "changes setup, which applies every bot change"),
+    ("bots/fakkelbot.md", HIGH, "changes fakkelbot, which applies every bot change"),
     ("bots/*.md", BOT, ""),
 )
 OTHER_PATH = "isn't on the list of paths that merge themselves"
@@ -337,7 +337,7 @@ def file_changes(gh: GitHub, pr: dict, sha: str) -> List[FileChange]:
     changes = []
     for item in files:
         change = FileChange(item["filename"], item["status"], item.get("previous_filename"))
-        if path_rule(change.path)[0] == BOT and change.path != "bots/setup.md":
+        if path_rule(change.path)[0] == BOT and change.path != "bots/fakkelbot.md":
             if base is None:
                 base = gh.get(f"compare/{quote(pr['base']['ref'])}...{sha}")["merge_base_commit"]["sha"]
             old_path = change.previous or change.path

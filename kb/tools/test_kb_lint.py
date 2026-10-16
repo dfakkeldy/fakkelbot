@@ -266,6 +266,8 @@ class KbLintTest(unittest.TestCase):
             "    resource: https://example.com/2",
             "  - title: No resource",
             "  - just a string",
+            "  - id: [a, b]",
+            "    resource: https://example.com/3",
             "",
         ])
         body = "A.[^one] B.[^nobody] C.[^undefined] `[^in-code]`\n\n[^one]: One.\n[^nobody]: Nobody.\n"
@@ -278,6 +280,7 @@ class KbLintTest(unittest.TestCase):
             'kb/bundle/references/a.md: source "one" appears twice',
             "kb/bundle/references/a.md: source 3 has no resource",
             "kb/bundle/references/a.md: source 4 must be a mapping with a resource",
+            "kb/bundle/references/a.md: source \"['a', 'b']\": id must be text",
             "kb/bundle/references/a.md: footnote [^nobody] has no source with that id",
             "kb/bundle/references/a.md: footnote [^undefined] has no source with that id",
             "kb/bundle/references/a.md: footnote [^undefined] has no definition line",

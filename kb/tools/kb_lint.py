@@ -404,13 +404,16 @@ class Lint:
             if not isinstance(source, dict):
                 self.report(page, f"source {number} must be a mapping with a resource")
                 continue
-            label = f'source "{source["id"]}"' if source.get("id") else f"source {number}"
+            source_id = source.get("id")
+            label = f'source "{source_id}"' if source_id else f"source {number}"
             if not source.get("resource"):
                 self.report(page, f"{label} has no resource")
-            if source.get("id"):
-                if source["id"] in ids:
+            if source_id and not isinstance(source_id, str):
+                self.report(page, f"{label}: id must be text")
+            elif source_id:
+                if source_id in ids:
                     self.report(page, f"{label} appears twice")
-                ids.add(source["id"])
+                ids.add(source_id)
             if "author" in source and not is_actor(source["author"]):
                 self.report(page, f'{label}: author "{source["author"]}" {ACTOR_HINT}')
             if "checked" in source and not is_date(source["checked"]):

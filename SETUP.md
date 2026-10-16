@@ -52,7 +52,7 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 3. **Create the owner's copy of this repo.** If `gh repo view <owner>/grok-bot-setup --json visibility` succeeds, the repo exists, so skip. Tell the owner if it shows `PUBLIC`. Otherwise run:
 
    ```sh
-   gh repo create <owner>/grok-bot-setup --private --template dfakkeldy/grok-bot-starter
+   gh repo create <owner>/grok-bot-setup --private --template dfakkeldy/fakkelbot
    ```
 
 4. **Clone it.** If `git -C /workspace/grok-bot-setup remote get-url origin` names `<owner>/grok-bot-setup`, run `git -C /workspace/grok-bot-setup pull --ff-only` and skip. If the folder holds anything else, stop and ask. Otherwise run:

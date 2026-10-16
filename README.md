@@ -1,6 +1,6 @@
-# grok-bot-starter
+# FakkelBot
 
-A starter team of Grok Bot bots that you set up by chatting with one of them. Each bot's instructions are in a private GitHub repo you own.
+A starter team of bots for Grok Bot that you set up by chatting with one of them. Each bot's instructions are in a private GitHub repo you own.
 
 ## Quick start
 
@@ -48,9 +48,9 @@ The [bot chart](docs/bot-chart.md) shows which bots hand work to which, and when
 - clerk and the Coding group can work on your connected computer. Coding remembers your choice per project and defaults to Grok's computer for Linux work. Local commands follow that computer's existing approval setting. Always allow lets every bot in; setup never enables it.
 - A rule in a bot's instructions isn't enforced. Where an app has a switch, setup asks you to use it, such as turning off Gmail's send tools.
 
-## Install without the template
+## Install without the Grok Bot template
 
-1. Run `gh repo create <you>/grok-bot-setup --private --template dfakkeldy/grok-bot-starter`.
+1. Run `gh repo create <you>/grok-bot-setup --private --template dfakkeldy/fakkelbot`.
 2. In Grok Bot, create a bot named setup with the Instructions block from [bots/setup.md](bots/setup.md) as its description.
 3. Tell it "set me up".
 
@@ -64,6 +64,8 @@ Grok Bot is in beta, so these may change. [kb/bundle/references/grok-bot-platfor
 - An approval card raised by a routine or another bot expires after about 10 minutes. No routine here waits on one.
 - Grok Bot may pause routines after a long silence from you. A paused routine looks like a quiet day.
 
-Made by Dan Fakkeldy (@DFakkeldy on X).
+FakkelBot isn't made by xAI, and xAI doesn't endorse it. Grok is a trademark of xAI.
+
+Made by Dan Fakkeldy (@DFakkeldy on X). *Fakkel* is Dutch for torch.
 
 MIT licence. See [LICENSE](LICENSE).

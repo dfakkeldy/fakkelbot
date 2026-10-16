@@ -149,7 +149,7 @@ class EdgeTest(unittest.TestCase):
 
     def test_paths_repos_and_file_names_are_not_mentions(self):
         fakkelbot = bot_file("fakkelbot", "Apply changes.")
-        reader = bot_file("reader", "Read SETUP.md, grok-bot-setup, bots/fakkelbot.md and https://github.com/dfakkeldy/fakkelbot. Use SendToAgent.")
+        reader = bot_file("reader", "Read FAKKELBOT.md, my-fakkelbot, bots/fakkelbot.md and https://github.com/dfakkeldy/fakkelbot. Use SendToAgent.")
         with fleet_dir(fakkelbot, reader) as directory:
             self.assertEqual(bc.find_edges(bc.load_bots(directory)), set())
 
@@ -323,7 +323,7 @@ flowchart TB
   <img alt="A day of scheduled routines, with one row per routine and a dot at each start time. The tables below list the same times." src="bot-chart-schedule-light.svg">
 </picture>
 
-Each dot is a routine's start time. A filled dot on the left marks a bot fakkelbot adds by default, and a ring marks an optional one.
+Each dot is a routine's start time. A filled dot on the left marks a bot that fakkelbot adds by default, and a ring marks an optional one.
 
 The chart leaves out one disabled routine, beta's old-sweep.
 

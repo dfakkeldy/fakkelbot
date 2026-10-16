@@ -206,7 +206,7 @@ flowchart TB
   <img alt="A day of scheduled routines, with one row per routine and a dot at each start time. The tables below list the same times." src="bot-chart-schedule-light.svg">
 </picture>
 
-Each dot is a routine's start time. A filled dot on the left marks a bot fakkelbot adds by default, and a ring marks an optional one.
+Each dot is a routine's start time. A filled dot on the left marks a bot that fakkelbot adds by default, and a ring marks an optional one.
 
 Routines that only run on GitHub events are in the tables below.
 

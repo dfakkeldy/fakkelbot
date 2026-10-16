@@ -460,7 +460,7 @@ if CREATION_STATUS:
     DOT_NOTE = "Each dot is a routine's start time, in its bot's colour. Creation status is in the tables, not the image."
 else:
     PALE_NOTE = "A pale bot with a dashed outline is one that fakkelbot adds only when the owner asks for it."
-    DOT_NOTE = ("Each dot is a routine's start time. A filled dot on the left marks a bot fakkelbot adds by default, "
+    DOT_NOTE = ("Each dot is a routine's start time. A filled dot on the left marks a bot that fakkelbot adds by default, "
                 "and a ring marks an optional one.")
 
 

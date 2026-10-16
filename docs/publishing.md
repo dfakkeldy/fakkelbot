@@ -4,7 +4,7 @@ Follow these steps when you maintain a copy of this starter and want other peopl
 
 Other people can install a starter only when three things hold:
 
-- Its repo is public, so fakkelbot can clone it without signing in. fakkelbot clones it before the owner has signed in to GitHub.
+- Its repo is public, so fakkelbot can clone it before the owner has signed in to GitHub.
 - Its repo is marked as a template, because SETUP.md step 3 runs `gh repo create --template` on it.
 - Its README tells people how to add fakkelbot.
 

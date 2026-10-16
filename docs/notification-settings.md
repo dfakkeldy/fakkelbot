@@ -17,7 +17,7 @@ A mode changes alerts and visibility. It does not change reporting ownership, ap
 
 ## Changing a situation
 
-Use the owner's explicit request or a saved rule they approved, such as notifications for a named bot while a specific task waits for them. Record the request, prior flags, temporary flags and end condition in that bot's private workspace, with a minimal mode summary in /workspace/setup/notifications.md. Apply its own flags with UpdateProfile, then read back what is supported. Record an unavailable readback as unverified. fakkelbot coordinates a multi-bot change; each bot sets itself.
+An already-authorized fakkelbot apply may set the exact defaults in each bot's own file on current main within the owner-selected mode, after verifying the values and preserving active temporary overrides. It does not need another yes for that same approved choice. For a different or temporary mode, use the owner's explicit request or a saved rule they approved, such as notifications for a named bot while a specific task waits for them. Record the request, prior flags, temporary flags and end condition in that bot's private workspace, with a minimal mode summary in /workspace/setup/notifications.md. Apply its own flags with UpdateProfile, then read back what is supported. Record an unavailable readback as unverified. fakkelbot coordinates a multi-bot change; each bot sets itself.
 
 If liaison is absent, keep fakkelbot visible with notifications on; never hide the only notifying contact.
 

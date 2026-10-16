@@ -33,6 +33,8 @@ You can also add these:
 - **clerk** finds and files the files on your own computer when you ask. It logs every move so you can undo it, and never deletes anything.
 - **Coding group** adds **claude**, **cursor** and **codex**, which operate Claude Code, Cursor Agent and Codex CLI. Each handles assigned tasks and can review another tool's work. Choose all three or any subset. They have no routines, and fakkelbot checks each selected CLI and sign-in. [Coding setup and computer choices](docs/coding-group.md) explains how they use Grok's computer or an approved local computer.
 
+[Notification settings](docs/notification-settings.md) lets setup offer Liaison-only delivery and explicit temporary alerts for direct work. Hidden bots keep working but do not notify.
+
 ## How it works
 
 You change a bot by asking fakkelbot, or with a PR that edits its file. Low-risk PRs, such as knowledge base notes and wording fixes, merge themselves once every check passes and go live, with one line in your morning brief. A PR that adds a bot, a trigger or a power, or changes the workflows, scripts or board, waits for you. [bots/README.md](bots/README.md#change-a-bot) explains how, and [decision 0002](kb/bundle/decisions/0002-ci-decides-what-merges.md) says what counts as low risk.

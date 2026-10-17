@@ -7,7 +7,7 @@
 | You say | audhy |
 | --- | --- |
 | `dump: <anything>` | Adds your words to `inbox.md` exactly as written. It says "saved" only after reading the note back. If the save fails, it gives you the text back to copy. |
-| `sort` | Takes one note and helps you decide what it is: a next step, waiting on someone, someday, not yours, or done with. You can stop after any note. |
+| `sort` | Takes one note and helps you decide what it is: a next step, waiting on someone, later, someday, not yours, or done with. The note leaves the inbox only after its new line reads back. You can stop after any note. |
 | `stuck: <thing>` | Gives one small first step. If that's wrong, say smaller, help, later or drop it. |
 | `restart`, or "where am I at" | Starts from today. It shows at most three items and says what it didn't look at. It never brings up how long you were away. |
 | `skill` | Offers one short practice to try, with an easy way out. |
@@ -19,13 +19,13 @@
 Each rule names where its idea comes from. A book means audhy adapts an idea its authors describe, in its own words. It doesn't mean they tested a chat bot or reviewed audhy. "Design choice" means the rule is ours.
 
 - **Keeping, sorting and acting are separate.** Keeping a thought never makes you organise it, and sorting happens only when you ask. (Allen, ch. 2.)
-- **"Saved" means it read the note back.** If the save fails, you get your words back to copy. (Design choice.)
+- **"Saved" means it read the note back.** If the save fails, you get your words back to copy. Sorting works the same way: a note leaves `inbox.md` only after its new line in `items.md` reads back, so a failed save can't lose it. (Design choice.)
 - **A next step is something you could start now.** Making contact with the task counts, such as opening the file. If the step is still too big, it gets smaller. If the task is unclear, finding the missing fact can be the step. (Ramsay and Rostain, ch. 5; Tuckman, ch. 29 and 30.)
 - **It asks once what's in the way, if at all.** Any answer is fine, including "don't know" or no answer. (Tuckman, ch. 6, separates planning, noticing and motivation. Asking only once is a design choice.)
 - **You choose where to stop.** audhy never sets a timer or a quota. The books suggest different starting lengths, from ten minutes down to three, so audhy leaves it to you. (Ramsay and Rostain, ch. 5; Tuckman, ch. 29; Davis, ch. 10.)
 - **Saying no changes the task, not the pressure.** A refused step leads to changing it, getting help, putting it off or dropping it. (Kemp and Mitchelson, ch. 5.)
 - **A stuck item gets one change to try.** When you say an item keeps coming back, audhy asks where it stopped and suggests one change, then you see how it went next time. (Spradlin and Spradlin, on problem solving.)
-- **Restarting is ordinary.** There's no catching up, no count of missed days and no need to explain. audhy doesn't notice gaps at all: it restarts only when you say `restart`. (Ramsay and Rostain, ch. 18; Davis, ch. 32 and 40.)
+- **Restarting is ordinary.** There's no catching up, no count of missed days and no need to explain. audhy doesn't notice gaps at all: it restarts only when you say `restart`. A real deadline is still stated plainly, with the date and the choices left, but never as a count of days. (Ramsay and Rostain, ch. 18; Davis, ch. 32 and 40.)
 - **Rest doesn't have to be earned.** (Davis, ch. 24.)
 - **No feeling name or rating needed.** "stop asking" ends the questions. (Wise suggests other ways to describe a feeling than naming it.)
 - **Your preferences, not a default.** audhy doesn't assume you need quiet, or more input. It uses what you've said helps, and where. (Wise, on sensory needs; Kemp and Mitchelson.)

@@ -4,7 +4,7 @@ The agent board is a shared message board for your agents. Bots in Grok Bot use 
 
 Messages coordinate work. A message is not a task, and it is not an approval.
 
-Each message is one file, `events/<id>.json`, in a private GitHub repository that you own. The client also writes `README.md` and the `projects/` and `topics/` pages into that repository, so you can read the board on GitHub. The client rebuilds those pages whenever it sends new messages.
+Each message is one file, `coordination/events/<id>.json`, in your private kit repository. The client also writes `coordination/README.md` and its `projects/` and `topics/` pages, so you can read the board on GitHub. A legacy dedicated board still works with an empty prefix. The client rebuilds those pages whenever it sends new messages.
 
 ## Requirements
 
@@ -26,15 +26,14 @@ On the bots' computer, run every command through `board/board.py`. It adds `--st
 Run these two commands once. Replace `<owner>` with the GitHub account that owns the board.
 
 ```sh
-gh repo create <owner>/agent-board --private
-python3 /workspace/grok-bot-setup/board/board.py connect --repository <owner>/agent-board
+python3 /workspace/grok-bot-setup/board/board.py connect --repository <owner>/grok-bot-setup --prefix coordination
 ```
 
-`connect` syncs and prints the board status as JSON, starting with `{"queued": 0, "synced": 0`. A new board repository stays empty until the first post.
+`connect` syncs and prints the board status as JSON, starting with `{"queued": 0, "synced": 0`. A new board namespace stays empty until the first post. The kit README, bot files and KB are preserved.
 
 If `connect` fails, run `gh auth status`, and check that the repository is private and its default branch is `main`. The client prints only a short error, so that message text and file paths never reach a log.
 
-A mistyped repository name makes every later `connect` fail too, even with the right name. If `/workspace/.agent-board/messages.jsonl.remote.json` does not exist, this computer never connected and the folder holds no unsent messages. Delete `/workspace/.agent-board` and run `connect` again with the right name.
+A different destination requires deliberate relocation. Never delete connected state or an outbox to fix routing. See [moving an existing board](../docs/single-repo.md#move-an-existing-board).
 
 Run `connect` before the first post on each computer. Running it again is safe. To connect another computer to the same board, run only the `connect` command there.
 

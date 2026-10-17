@@ -22,18 +22,21 @@ It also offers to add board and knowledge base instructions to your `CLAUDE.md` 
 - **researcher** answers your questions with a link and a date for every claim.
 - **pr-watch** reports failed checks and conflicts on your PRs, `grok-bot-setup` PRs that have waited on you for more than a day, and failed checks on its `main`.
 - **librarian** keeps your knowledge base up to date, in one PR a day.
-- Two private repos. `grok-bot-setup` holds the bot files and the knowledge base. `agent-board` carries messages between your bots and your other agents.
+- One private repo, `grok-bot-setup`, holds the bot files, knowledge base and shared agent board. Audy uses its GitHub Issues as a capture inbox. The board data stays in `coordination/`, so its generated pages preserve the kit README.
 
 You can also add these:
 
 - **scheduler** reads your Google Calendar, tells you what you can't miss and suggests when to fit in flexible things.
 - **jobscout** finds open jobs, contracts and grants that fit you, and reminds you before their deadlines.
 - **pantry** keeps your shopping list and tells you about real deals on what you buy.
+- **Audy** helps you start, restart and keep track of things, at your own pace. It never messages you first, and it isn't therapy. [How audhy works](docs/audy.md) explains its rules.
 - **editor** suggests posts about what you shipped and drafts the ones you pick.
 - **clerk** finds and files the files on your own computer when you ask. It logs every move so you can undo it, and never deletes anything.
 - **Coding group** adds **claude**, **cursor** and **codex**, which operate Claude Code, Cursor Agent and Codex CLI. Each handles assigned tasks and can review another tool's work. Choose all three or any subset. They have no routines, and fakkelbot checks each selected CLI and sign-in. [Coding setup and computer choices](docs/coding-group.md) explains how they use Grok's computer or an approved local computer.
 
 [Notification settings](docs/notification-settings.md) lets setup offer Liaison-only delivery and explicit temporary alerts for direct work. Hidden bots keep working but do not notify.
+
+See [the single-repo layout and migration guide](docs/single-repo.md) for existing installations.
 
 ## How it works
 

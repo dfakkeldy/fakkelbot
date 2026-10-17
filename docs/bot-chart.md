@@ -13,6 +13,7 @@ Grey arrows are hand-offs between bots. The table of every edge below says where
 ```mermaid
 %%{init: {"flowchart": {"curve": "basis"}}}%%
 flowchart TB
+    bot_audy("Audy")
     bot_claude("claude")
     bot_clerk("clerk")
     bot_codex("codex")
@@ -59,10 +60,10 @@ flowchart TB
     bot_scheduler --> bot_liaison
     bot_scheduler --> bot_librarian
     sys_github ==>|"wakes: apply"| bot_fakkelbot
+    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
+    class bot_audy,bot_clerk,bot_pantry,bot_scheduler daily_life_optional
     classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
     class bot_claude,bot_codex,bot_cursor builders_optional
-    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
-    class bot_clerk,bot_pantry,bot_scheduler daily_life_optional
     classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
     class bot_editor content_optional
     classDef daily_life fill:#1a7f37,stroke:#1a7f37,color:#ffffff
@@ -88,6 +89,7 @@ Each teal arrow points from a bot to a system it uses.
 ```mermaid
 %%{init: {"flowchart": {"curve": "basis"}}}%%
 flowchart TB
+    bot_audy("Audy")
     bot_claude("claude")
     bot_codex("codex")
     bot_cursor("cursor")
@@ -107,6 +109,9 @@ flowchart TB
     sys_claude_cli["Claude Code"]
     sys_cursor_cli["Cursor Agent"]
     sys_codex_cli["Codex CLI"]
+    bot_audy --> sys_github
+    bot_audy --> sys_kb
+    bot_audy --> sys_board
     bot_claude --> sys_github
     bot_claude --> sys_board
     bot_claude --> sys_claude_cli
@@ -127,6 +132,8 @@ flowchart TB
     bot_pr_watch --> sys_github
     bot_researcher --> sys_kb
     bot_scheduler --> sys_gcal
+    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
+    class bot_audy,bot_scheduler daily_life_optional
     classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
     class bot_claude,bot_codex,bot_cursor builders_optional
     classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
@@ -137,11 +144,9 @@ flowchart TB
     class bot_librarian,bot_researcher work
     classDef builders fill:#8250df,stroke:#8250df,color:#ffffff
     class bot_pr_watch builders
-    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
-    class bot_scheduler daily_life_optional
     classDef system fill:transparent,stroke:#8c959f,stroke-width:1.5px
     class sys_github,sys_kb,sys_board,sys_gmail,sys_gcal,sys_claude_cli,sys_cursor_cli,sys_codex_cli system
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19 stroke:#3192aa,stroke-width:1.5px
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 stroke:#3192aa,stroke-width:1.5px
 ```
 
 ### Every edge
@@ -178,6 +183,9 @@ flowchart TB
 | scheduler | liaison | hands off to | instructions |
 | scheduler | librarian | hands off to | instructions |
 | GitHub | fakkelbot | wakes | apply |
+| Audy | GitHub | uses | instructions |
+| Audy | knowledge base | uses | instructions |
+| Audy | agent board | uses | instructions |
 | claude | GitHub | uses | instructions |
 | claude | agent board | uses | instructions |
 | claude | Claude Code | uses | instructions |
@@ -211,6 +219,10 @@ Each dot is a routine's start time. A filled dot on the left marks a bot that fa
 Routines that only run on GitHub events are in the tables below.
 
 ## Routines by bot
+
+### Audy (optional)
+
+No routines.
 
 ### claude (optional)
 

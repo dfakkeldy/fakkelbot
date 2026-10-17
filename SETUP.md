@@ -20,7 +20,7 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
    ```text
    Hi. I'll set up a small team of Grok bots for you.
-   I'll make a private GitHub repo with each bot's instructions, and a private message board the bots share. After that, you change a bot by asking me or with a pull request. Low-risk changes go live by themselves, and I'll ask you about the rest.
+   I'll make one private GitHub repo for the bot instructions, knowledge base, shared agent board and capture inbox. After that, you change a bot by asking me or with a pull request. Low-risk changes go live by themselves, and I'll ask you about the rest.
    Three questions:
    1. Your GitHub username?
    2. Your timezone, such as Europe/Berlin?
@@ -49,7 +49,7 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
    If the login isn't `<owner>`, stop and ask.
 
-3. **Create the owner's copy of this repo.** If `gh repo view <owner>/grok-bot-setup --json visibility` succeeds, the repo exists, so skip. Tell the owner if it shows `PUBLIC`. Otherwise run:
+3. **Create the owner's copy of this repo.** If `gh repo view <owner>/grok-bot-setup --json visibility` succeeds, the repo exists, so skip. If it shows `PUBLIC`, stop and ask for a private destination before storing personal material. Otherwise run:
 
    ```sh
    gh repo create <owner>/grok-bot-setup --private --template dfakkeldy/fakkelbot
@@ -63,19 +63,25 @@ The Grok Bot facts here are as of 2026-10-14. Grok Bot is in beta, so they may c
 
    If the clone has no `SETUP.md`, GitHub is still copying the template. Wait a minute and pull again. From now on, read this file and `bots/` from `/workspace/grok-bot-setup`. Never edit files there, because every bot reads that checkout. A bot that changes the repo works in its own git worktree.
 
-5. **Create the board.** The board is a private repo where the bots and the owner's other agents leave each other messages. If `gh repo view <owner>/agent-board` succeeds, the owner already has a repo with that name, maybe a board other agents use. Stop and ask whether these bots should share it. Connect to it only after the owner says yes. Otherwise run:
+5. **Connect the board inside the same private repo.** The code is in `board/`; its data and generated pages live in `coordination/`, alongside the kit and `kb/`. Read the current board status first. If the client is already connected, keep that connection unless the owner explicitly requests consolidation. Never clear its cache or outbox to change a destination.
+
+   If an existing `<owner>/agent-board` repo or another configured board is found, ask whether to keep sharing it or consolidate it into this kit, unless that choice is already saved. Do not start a second board while another is canonical. A consolidation follows [the relocation procedure](docs/single-repo.md#move-an-existing-board), with frozen-source import and preserved pending records.
+
+   For a new installation with no existing board, run:
 
    ```sh
-   gh repo create <owner>/agent-board --private
+   python3 /workspace/grok-bot-setup/board/board.py connect --repository <owner>/grok-bot-setup --prefix coordination
    ```
 
-   Then connect the board client with the command from `## Set up` in `board/README.md`. `connect` syncs, and running it again is safe.
+   Read back `sync-status`, and check that board navigation is under `coordination/` and the kit's root README is unchanged. Do not create a separate board repo. A failed connection preserves its state; diagnose it without deleting a possible outbox.
+
+   If the owner selected Audy, configure its inbox in the same private repo:
 
    ```sh
-   python3 /workspace/grok-bot-setup/board/board.py connect --repository <owner>/agent-board
+   python3 /workspace/grok-bot-setup/capture/inbox.py --state-dir /workspace/audy configure --repository <owner>/grok-bot-setup
    ```
 
-   If `connect` fails after a mistyped repo name and `/workspace/.agent-board/messages.jsonl.remote.json` doesn't exist, ask the owner whether to delete `/workspace/.agent-board`, then connect again with the right name.
+   GitHub must confirm that the destination is private and Issues are enabled. Save the confirmed destination in setup progress. GitHub Issues holds deliberate captures; routine chat and preferences stay out of the KB and board. A local queued capture is not a confirmed GitHub save.
 
 6. **Ask the owner to connect what the bots need.** Ask for all of these in one message, then wait until the owner says each is done. Skip any that `progress.md` marks done or that you can see is done. Add a line to `progress.md` as each one is done, such as `gmail done`, so a rerun doesn't ask again.
    - **Board and KB instructions for other coding agents, optional.** Once the board connection works, offer to add two short sections to the owner's `CLAUDE.md` and `AGENTS.md`, one for the board and one for the knowledge base, following [the instruction-file setup guide](docs/agent-instructions-setup.md). They can choose user-level files, selected private projects, or skip, and take one section or both. Show the paths and exact diff, preserve existing instructions, and update an existing board or KB section instead of duplicating it. Private board routing and local clone paths belong in private instructions. Record the choice in `/workspace/setup/agent-instructions.md`, so a rerun preserves it and does not ask again unless the owner wants a change. Skipping or a pending local-computer step does not block the rest of setup. Repository changes go through a PR; never edit a shared checkout or change computer permissions to install this section.

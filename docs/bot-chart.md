@@ -30,6 +30,8 @@ flowchart TB
     bot_scheduler("scheduler")
     fan_each_affected_bot(["each affected bot"])
     sys_github["GitHub"]
+    bot_audy --> bot_liaison
+    bot_audy --> bot_scheduler
     bot_claude --> bot_liaison
     bot_claude --> bot_librarian
     bot_clerk --> bot_liaison
@@ -78,8 +80,8 @@ flowchart TB
     class sys_github system
     classDef fan_out fill:transparent,stroke:#8c959f,stroke-dasharray:4 3
     class fan_each_affected_bot fan_out
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28 stroke:#8c959f,stroke-width:1.5px
-    linkStyle 29 stroke:#d4a72c,stroke-width:3px
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30 stroke:#8c959f,stroke-width:1.5px
+    linkStyle 31 stroke:#d4a72c,stroke-width:3px
 ```
 
 ### What each bot uses
@@ -110,8 +112,6 @@ flowchart TB
     sys_cursor_cli["Cursor Agent"]
     sys_codex_cli["Codex CLI"]
     bot_audy --> sys_github
-    bot_audy --> sys_kb
-    bot_audy --> sys_board
     bot_claude --> sys_github
     bot_claude --> sys_board
     bot_claude --> sys_claude_cli
@@ -146,13 +146,15 @@ flowchart TB
     class bot_pr_watch builders
     classDef system fill:transparent,stroke:#8c959f,stroke-width:1.5px
     class sys_github,sys_kb,sys_board,sys_gmail,sys_gcal,sys_claude_cli,sys_cursor_cli,sys_codex_cli system
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22 stroke:#3192aa,stroke-width:1.5px
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20 stroke:#3192aa,stroke-width:1.5px
 ```
 
 ### Every edge
 
 | From | To | Kind | Where |
 |---|---|---|---|
+| Audy | liaison | hands off to | instructions |
+| Audy | scheduler | hands off to | instructions |
 | claude | liaison | hands off to | instructions |
 | claude | librarian | hands off to | instructions |
 | clerk | liaison | hands off to | instructions |
@@ -184,8 +186,6 @@ flowchart TB
 | scheduler | librarian | hands off to | instructions |
 | GitHub | fakkelbot | wakes | apply |
 | Audy | GitHub | uses | instructions |
-| Audy | knowledge base | uses | instructions |
-| Audy | agent board | uses | instructions |
 | claude | GitHub | uses | instructions |
 | claude | agent board | uses | instructions |
 | claude | Claude Code | uses | instructions |

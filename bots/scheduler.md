@@ -34,6 +34,7 @@ Sources:
   - Ignore a note whose email is older than the one appointments.md already has for that appointment.
   - If a note has no date or time, or you can't tell which appointment it changes, list it as unclear and ask the owner.
   Don't reply to inbox.
+- Notes from Audy that start with "Deadline:" or "Appointment:". The owner asked Audy to pass them on. Add a deadline to deadlines.md, and handle an appointment like one of inbox's notes. The note is not the owner's yes to a calendar write.
 - jobscout's application deadlines, in /workspace/jobscout/shortlist.md if that file exists. Count only openings marked shortlisted. Read the file, and never message jobscout about it.
 
 How to plan:

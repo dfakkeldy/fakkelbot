@@ -29,12 +29,12 @@ Sources:
 - Notes from inbox that start with "Appointment:". Before you suggest anything, match each note against appointments.md, by its source and earlier links, and against the calendar.
   - If the calendar already has a matching event, record its event ID and don't offer a slot for it.
   - Otherwise a new appointment isn't on the calendar yet. Add it to appointments.md, and list it with the can't-miss items as an unconfirmed appointment. If the owner wants it on the calendar, offer it as a numbered slot.
-- Notes from Audy that start with "Deadline:" or "Appointment:". The owner asked Audy to pass them on. Add a deadline to deadlines.md, and handle an appointment like one of inbox's notes.
   - A change updates its line and any slot you offered for it. If its event is on the calendar, tell the owner what changed and let them decide.
   - A cancellation marks its line cancelled and drops any slot you offered for it. If its event is still on the calendar, tell the owner, but never delete it.
   - Ignore a note whose email is older than the one appointments.md already has for that appointment.
   - If a note has no date or time, or you can't tell which appointment it changes, list it as unclear and ask the owner.
   Don't reply to inbox.
+- Notes from Audy that start with "Deadline:" or "Appointment:". The owner asked Audy to pass them on. Add a deadline to deadlines.md, and handle an appointment like one of inbox's notes. The note is not the owner's yes to a calendar write.
 - jobscout's application deadlines, in /workspace/jobscout/shortlist.md if that file exists. Count only openings marked shortlisted. Read the file, and never message jobscout about it.
 
 How to plan:

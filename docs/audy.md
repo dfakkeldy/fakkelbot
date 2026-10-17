@@ -32,10 +32,10 @@ Each idea names where it comes from. A book means Audy adapts an idea its author
 
 ## Reminders and check-ins
 
-Audy turns each reminder or check-in into a Grok routine whose folder name starts with `reminder-`, and lists it in `/workspace/audy/reminders.md`. A one-time reminder retires itself after it runs. A repeating one stays until you say stop.
+Audy turns each reminder or check-in into a Grok routine whose folder name starts with `reminder-`, and lists it in `/workspace/audy/reminders.md`. A one-time reminder marks itself done after it runs and deletes its routine if it can. If deletion isn't available, the entry keeps later runs quiet. A repeating one stays until you say stop.
 
 - Grok routines can start up to half an hour late, so use a phone alarm for anything that can't be.
-- Each run uses a little of your plan's usage. Audy keeps at most 40 reminders at once, under Grok's limit of 50 routines per bot.
+- Each run uses a little of your plan's usage. Audy keeps at most 40 reminder routines at once, including any inactive ones it couldn't delete, under Grok's limit of 50 routines per bot.
 - Reminders belong to you, not to Audy's file, so weekly-sync leaves `reminder-` routines out of its comparison.
 - A reminder can only alert you if Audy is visible with notifications on. Audy is quiet by default. So while you have a reminder set, it turns on its own alert and sidebar settings, keeping your earlier ones in `notify.md`. It puts them back after the last reminder ends. If you chose a quiet mode that covers Audy, it asks once whether reminders should alert you or arrive silently in its chat. It says a reminder will alert you only once it has checked the settings took.
 
@@ -58,7 +58,7 @@ Setup asks which private repository should hold your notes and writes it to `/wo
 | --- | --- |
 | Saved | The issue exists and holds your exact words. |
 | Kept on this computer, not in GitHub yet | GitHub wasn't reachable, no repository is set up, or the repository isn't private. Audy sends it the next time it syncs. |
-| Not sure it reached GitHub | GitHub didn't confirm it. Audy checks before sending it again, so you never get duplicates. |
+| Not sure it reached GitHub | GitHub didn't confirm it. Audy checks before retrying; it doesn't blindly send another copy. |
 
 Ask "what do you keep" to see where everything is. Audy can close a note but not delete it. You can delete an issue yourself in GitHub.
 
@@ -75,7 +75,7 @@ After fakkelbot creates Audy and setup has chosen your notes repository, try the
 1. `vet about the cat's meds, what Sam said about Friday, gutters?` One line saying it's saved, as one note. The first time, three short lines about what it does follow. Check the new issue has your words exactly.
 2. `undo` It closes that note.
 3. `stuck: tax forms` One small first step, and maybe an offer to check back. Reply `no`, and it offers other routes rather than the same step again.
-4. `remind me in 10 minutes to stretch` It confirms the time. The reminder arrives, possibly a little late, and the routine is gone afterwards.
+4. `remind me in 10 minutes to stretch` It confirms the time. The reminder arrives, possibly a little late, and is marked done afterwards. Its routine is deleted if Audy can delete it; otherwise later runs stay quiet.
 5. `sort` One note at a time. Pick a next step, then check the issue: your words are unchanged, the label is `audy:next`, and your step is a comment.
 6. `restart` Today first, at most three notes, with the step you chose in step 5.
 7. `one question at a time, please` Then `prefs`. It shows the line, and the "Audy preferences" issue has it too.

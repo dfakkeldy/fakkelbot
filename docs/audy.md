@@ -20,10 +20,12 @@ On its first run, Audy asks when your day starts, when you work and when you do 
 | When | Audy |
 | --- | --- |
 | 07:30 weekdays, 09:00 weekends | Today: fixed events, one must-do and up to two more, each with a reason, decisions bots are waiting on, and how many things are parked |
-| During work | Quiet, except due-day items, leave-by reminders and urgent items |
+| During work on workdays | Quiet, except reminders you set, calendar and leave-by reminders, due-day items and urgent items |
 | Early evening | Light, time-sensitive things only |
 | 21:00, Sunday to Thursday | Tonight: the one thing worth your evening, with its first step |
 | Weekends | One big thing on Saturday, and a light Sunday |
+
+Audy answers in its first line, taking the likeliest meaning of what you asked. If a question could mean two things, it answers the likelier one and names the other in a few words; any correction of your wording comes after the answer. If you write before today's message has gone out, Audy leads with your next fixed thing and its time.
 
 ## Choosing what matters
 
@@ -42,6 +44,8 @@ On its first run, Audy asks when your day starts, when you work and when you do 
 - **Book early:** scheduler offers the earliest slots first and flags afternoon ones, because waiting for an afternoon appointment can eat the day. When something has to be later, Audy reminds you at the leave-by time.
 
 ## Reminders
+
+If you have scheduler, every timed event or block on your calendar, other than your regular work hours, gets a reminder 30 minutes before it starts. An appointment with a leave-by time gets its reminder 30 minutes before the leave-by time instead. Audy sets them as soon as scheduler's evening look-ahead or morning day note arrives, so weekend mornings are covered too, and its today and tonight messages fill any gaps. Thirty minutes leaves room for a routine that starts late.
 
 Audy creates a Grok routine for each reminder or check-in, with a folder name starting `reminder-`, and lists it in `/workspace/audy/reminders.md`. One-time reminders retire themselves. Grok routines can start up to half an hour late, so use a phone alarm for anything that can't be. Audy keeps at most 40, under Grok's limit of 50 routines per bot, and weekly-sync leaves `reminder-` routines out of the bot's file.
 

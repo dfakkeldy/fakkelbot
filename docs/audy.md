@@ -26,7 +26,7 @@ Each rule names where its idea comes from. A book means Audy adapts an idea its 
 - **You choose where to stop.** Audy never sets a timer or a quota. The books suggest different starting lengths, from ten minutes down to three, so Audy leaves it to you. (Ramsay and Rostain, ch. 5; Tuckman, ch. 29; Davis, ch. 10.)
 - **Saying no changes the task, not the pressure.** A refused step leads to changing it, getting help, putting it off or dropping it. (Kemp and Mitchelson, ch. 5.)
 - **A stuck item gets one change to try.** When you say an item keeps coming back, Audy asks where it stopped and suggests one change, then you see how it went next time. (Spradlin and Spradlin, on problem solving.)
-- **Restarting is ordinary.** There's no catching up, no count of missed days and no need to explain. Audy doesn't notice gaps at all: it restarts only when you say `restart`. (Ramsay and Rostain, ch. 18; Davis, ch. 32 and 40.)
+- **Restarting is ordinary.** There's no catching up, no count of missed days and no need to explain. Audy doesn't notice gaps at all: it restarts only when you say `restart`. A real deadline is still stated plainly, with the date and the choices left, without counting days. (Ramsay and Rostain, ch. 18; Davis, ch. 32 and 40.)
 - **Rest doesn't have to be earned.** (Davis, ch. 24.)
 - **No feeling name or rating needed.** "stop asking" ends the questions. (Wise suggests other ways to describe a feeling than naming it.)
 - **Your preferences, not a default.** Audy doesn't assume you need quiet, or more input. It uses what you've said helps, and where. (Wise, on sensory needs; Kemp and Mitchelson.)

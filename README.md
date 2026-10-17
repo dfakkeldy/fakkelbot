@@ -29,7 +29,7 @@ You can also add these:
 - **scheduler** reads your Google Calendar, tells you what you can't miss and suggests when to fit in flexible things.
 - **jobscout** finds open jobs, contracts and grants that fit you, and reminds you before their deadlines.
 - **pantry** keeps your shopping list and tells you about real deals on what you buy.
-- **Audy** helps you start, restart and keep track of things, at your own pace. It never messages you first, and it isn't therapy. [How audhy works](docs/audy.md) explains its rules.
+- **Audy** keeps what's on your mind, gives you one small step at a time and reminds you when you ask. [How Audy works](docs/audy.md) explains it.
 - **editor** suggests posts about what you shipped and drafts the ones you pick.
 - **clerk** finds and files the files on your own computer when you ask. It logs every move so you can undo it, and never deletes anything.
 - **Coding group** adds **claude**, **cursor** and **codex**, which operate Claude Code, Cursor Agent and Codex CLI. Each handles assigned tasks and can review another tool's work. Choose all three or any subset. They have no routines, and fakkelbot checks each selected CLI and sign-in. [Coding setup and computer choices](docs/coding-group.md) explains how they use Grok's computer or an approved local computer.

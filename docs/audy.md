@@ -37,6 +37,7 @@ Audy turns each reminder or check-in into a Grok routine whose folder name start
 - Grok routines can start up to half an hour late, so use a phone alarm for anything that can't be.
 - Each run uses a little of your plan's usage. Audy keeps at most 40 reminders at once, under Grok's limit of 50 routines per bot.
 - Reminders belong to you, not to Audy's file, so weekly-sync leaves `reminder-` routines out of its comparison.
+- A reminder can only alert you if Audy is visible with notifications on. Audy is quiet by default. So while you have a reminder set, it turns on its own alert and sidebar settings, keeping your earlier ones in `notify.md`. It puts them back after the last reminder ends. If you chose a quiet mode that covers Audy, it asks once whether reminders should alert you or arrive silently in its chat. It says a reminder will alert you only once it has checked the settings took.
 
 ## Sharing with your other bots
 
@@ -50,7 +51,7 @@ Audy offers these when they fit, and remembers your answer:
 Setup asks which private repository should hold your notes and writes it to `/workspace/audy/config.json`. A fresh install uses your `grok-bot-setup` repository, alongside your knowledge base and board. Audy's [capture tool](../capture/README.md) checks the repository is still private before every request.
 
 - **Notes** are issues labelled `audy:capture` and `audy:inbox`, with your words in a code block, so an `@name` in a note notifies no one. Sorting changes the `audy:` label, adds your step as a comment, and closes the issue for done or not yours.
-- **Preferences** are one issue titled "Audy preferences", labelled `audy:prefs`, with a working copy in `prefs.md`.
+- **Preferences** are one issue titled "Audy preferences", labelled `audy:prefs`, with a working copy in `prefs.md`. Audy says a change is saved only after the issue reads back the same. Until then it keeps the change in `prefs.pending` and tries again, so a list you cleared stays cleared even if GitHub was unreachable.
 - **Reminders** are routines on Audy, listed in `reminders.md`.
 
 | What Audy says | What it means |

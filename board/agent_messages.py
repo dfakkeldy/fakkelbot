@@ -362,6 +362,11 @@ def main() -> int:
     commands.add_parser('sync-status', help='Show counts, freshness and conflicting event IDs')
     setup = commands.add_parser('connect', help='Attach this client to a private GitHub board')
     setup.add_argument('--repository', required=True)
+    setup.add_argument('--prefix', default='', help='Board data directory inside the private repository')
+    relocation = commands.add_parser('relocate', help='Switch to a verified imported board without discarding local records')
+    relocation.add_argument('--repository', required=True)
+    relocation.add_argument('--prefix', required=True)
+    relocation.add_argument('--source-head', required=True, help='Reviewed frozen revision of the current board')
     listing = commands.add_parser('list', help='Print newest-first JSONL')
     listing.add_argument('--limit', type=int, default=30)
     listing.add_argument('--project'); listing.add_argument('--task')
@@ -386,7 +391,12 @@ def main() -> int:
     try:
         if args.command == 'connect':
             import agent_board_remote
-            print(json.dumps(agent_board_remote.connect(args.store, args.repository).status()))
+            print(json.dumps(agent_board_remote.connect(args.store, args.repository, prefix=args.prefix).status()))
+        elif args.command == 'relocate':
+            import agent_board_remote
+            board = agent_board_remote.relocate(args.store, args.repository, prefix=args.prefix,
+                                                source_head=args.source_head)
+            print(json.dumps(board.status()))
         elif args.command in ('sync','refresh','sync-status'):
             remote = _remote(args.store)
             if remote is None: raise ValueError('No remote board configured')

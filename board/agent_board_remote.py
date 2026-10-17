@@ -20,6 +20,31 @@ MAX_BYTES = 8 * 1024 * 1024
 EVENT_FIELDS = {'schema', 'id', 'sequence', 'previous', 'legacy', 'record', 'changes', 'bases'}
 ID = re.compile(r'[a-f0-9]{32}')
 REPOSITORY = re.compile(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+')
+PREFIX = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)*')
+
+
+def _prefix(value):
+    if not isinstance(value, str) or value and not PREFIX.fullmatch(value):
+        raise ValueError('Use a bounded relative board data prefix')
+    if len(value) > 200:
+        raise ValueError('Board data prefix is too long')
+    return value
+
+
+def _configuration(repository, prefix):
+    if not isinstance(repository, str) or not REPOSITORY.fullmatch(repository):
+        raise ValueError('Invalid repository')
+    return {'schema': 2, 'repository': repository, 'prefix': _prefix(prefix)}
+
+
+def _verify_repository(repository):
+    result = subprocess.run(['gh','api',f'repos/{repository}','--jq','{private,default_branch}'],
+                            capture_output=True,timeout=20)
+    if result.returncode:
+        raise OSError('Private repository access unavailable')
+    value = json.loads(result.stdout)
+    if value.get('private') is not True or value.get('default_branch') != 'main':
+        raise ValueError('Board requires private repository with main branch')
 
 
 def _now():
@@ -82,11 +107,18 @@ def _atomic(path, data, *, replace=True):
         temporary.unlink(missing_ok=True)
 
 
-def initialize(root: Path, repository: str):
-    if not REPOSITORY.fullmatch(repository): raise ValueError('Invalid repository')
+def initialize(root: Path, repository: str, *, prefix=''):
+    config = _configuration(repository, prefix)
     _directory(root)
     with messages._locked(root/'state'):
-        _atomic(root/'config.json',_bytes({'schema':1,'repository':repository}),replace=False)
+        if (root/'config.json').exists():
+            old = _json(root/'config.json')
+            if old != config and old != {'schema': 1, 'repository': repository}:
+                raise ValueError('Existing board route differs; use explicit relocation')
+            if old.get('schema') == 1 and prefix:
+                raise ValueError('Existing board route differs; use explicit relocation')
+        else:
+            _atomic(root/'config.json',_bytes(config),replace=False)
         _directory(root/'outbox')
         if not (root/'cache.json').exists():
             _atomic(root/'cache.json',_bytes({'schema':1,'head':None,'synced_at':None,'events':[]}))
@@ -282,8 +314,15 @@ class PushConflict(OSError): pass
 
 
 class GitRemote:
-    def __init__(self, root, url, *, verify):
+    def __init__(self, root, url, *, verify, prefix=''):
         self.root=Path(root);self.url=url;self.verify=verify
+        self.prefix = _prefix(prefix)
+
+    def _path(self, relative):
+        return self.prefix + '/' + relative if self.prefix else relative
+
+    def _views(self, events):
+        return {self._path(path): data for path, data in render_views(events).items()}
 
     def _git(self,*args,input=None,env=None,check=True):
         values=os.environ.copy();values.update(env or {})
@@ -312,11 +351,12 @@ class GitRemote:
         return head,self._events_at(head)
 
     def _events_at(self,head):
-        lines=self._git('ls-tree','-r','-l',head,'--','events').stdout.decode().splitlines()
+        lines=self._git('ls-tree','-r','-l',head,'--',self._path('events')).stdout.decode().splitlines()
         objects=[];total=0
         for line in lines:
             header,path=line.split('\t',1);mode,kind,sha,size=header.split()
-            if mode!='100644' or kind!='blob' or not re.fullmatch(r'events/[a-f0-9]{32}\.json',path):
+            pattern = re.escape(self._path('events/')) + r'[a-f0-9]{32}\.json'
+            if mode!='100644' or kind!='blob' or not re.fullmatch(pattern,path):
                 raise ValueError('Unexpected event path or object')
             total+=int(size)
             if total>MAX_BYTES: raise ValueError('Remote board too large')
@@ -330,15 +370,22 @@ class GitRemote:
             offset=end+1
             event=json.loads(data[offset:offset+size],object_pairs_hook=messages._object)
             _validate_event(event)
-            if path!=f"events/{event['id']}.json": raise ValueError('Event filename mismatch')
+            if path!=self._path(f"events/{event['id']}.json"): raise ValueError('Event filename mismatch')
             events.append(event);offset+=size+1
         _reduce(events)
         return events
 
+    def event_blobs(self, head):
+        head = self._git('rev-parse','--verify','--end-of-options',head+'^{commit}').stdout.decode().strip()
+        self._events_at(head)
+        rows = self._git('ls-tree','-r',head,'--',self._path('events')).stdout.decode().splitlines()
+        return {Path(path).stem: header.split()[2]
+                for header, path in (row.split('\t',1) for row in rows)}
+
     def publish(self,head,events):
         existing=self._events_at(head) if head else []
         combined=_union(existing,events)
-        views=render_views(combined)
+        views=self._views(combined)
         known={e['id'] for e in existing}
         index=self.root/('index-'+uuid.uuid4().hex)
         env={'GIT_INDEX_FILE':str(index),'GIT_AUTHOR_NAME':'Agent board sync',
@@ -349,7 +396,7 @@ class GitRemote:
             for event in events:
                 if event['id'] in known:continue
                 sha=self._git('hash-object','-w','--stdin',input=_bytes(event)).stdout.decode().strip()
-                self._git('update-index','--add','--cacheinfo',f"100644,{sha},events/{event['id']}.json",env=env)
+                self._git('update-index','--add','--cacheinfo',f"100644,{sha},{self._path('events/'+event['id']+'.json')}",env=env)
             for path,data in views.items():
                 sha=self._git('hash-object','-w','--stdin',input=data).stdout.decode().strip()
                 self._git('update-index','--add','--cacheinfo',f'100644,{sha},{path}',env=env)
@@ -369,11 +416,11 @@ class GitRemote:
             if self._git('merge-base','--is-ancestor',base,head,check=False).returncode:
                 raise ValueError('Base must be an ancestor; history comparison refused')
             self._events_at(base)
-            old=set(self._git('ls-tree','-r',base,'--','events').stdout.splitlines())
-            new=set(self._git('ls-tree','-r',head,'--','events').stdout.splitlines())
+            old=set(self._git('ls-tree','-r',base,'--',self._path('events')).stdout.splitlines())
+            new=set(self._git('ls-tree','-r',head,'--',self._path('events')).stdout.splitlines())
             if not old.issubset(new):raise ValueError('Immutable event history changed or disappeared')
-        views=render_views(events)
-        lines=self._git('ls-tree','-r','-l',head,'--','README.md','projects','topics').stdout.decode().splitlines()
+        views=self._views(events)
+        lines=self._git('ls-tree','-r','-l',head,'--',*(self._path(p) for p in ('README.md','projects','topics'))).stdout.decode().splitlines()
         actual={}
         for line in lines:
             header,path=line.split('\t',1);mode,kind,sha,size=header.split()
@@ -389,18 +436,23 @@ class RemoteBoard:
     def __init__(self, root: Path, *, remote=None):
         self.root=Path(root)
         config=_json(self.root/'config.json')
-        if set(config)!={'schema','repository'} or config['schema']!=1 or not REPOSITORY.fullmatch(config['repository']):
+        legacy = set(config)=={'schema','repository'} and config.get('schema')==1
+        scoped = set(config)=={'schema','repository','prefix'} and config.get('schema')==2
+        if not (legacy or scoped) or not isinstance(config.get('repository'), str) or not REPOSITORY.fullmatch(config['repository']):
             raise ValueError('Invalid remote configuration')
         self.repository=config['repository']
-        self.remote=remote or GitRemote(self.root/'git',f'https://github.com/{self.repository}.git',verify=self._verify_private)
+        self.prefix = _prefix(config.get('prefix', ''))
+        route = hashlib.sha256((self.repository+'\0'+self.prefix).encode()).hexdigest()[:16]
+        git_path = self.root/'git' if legacy else self.root/('git-'+route)
+        self.remote=remote or GitRemote(git_path,f'https://github.com/{self.repository}.git',verify=self._verify_private,prefix=self.prefix)
 
     def _verify_private(self):
-        result=subprocess.run(['gh','api',f'repos/{self.repository}','--jq','{private,default_branch}'],
-                              capture_output=True,timeout=20)
-        if result.returncode: raise OSError('Private repository access unavailable')
-        value=json.loads(result.stdout)
-        if value.get('private') is not True or value.get('default_branch')!='main':
-            raise ValueError('Board requires private repository with main branch')
+        _verify_repository(self.repository)
+
+    def _check_route(self):
+        path = getattr(self, 'routing_path', None)
+        if path is not None and _json(marker(path)).get('root') != str(self.root):
+            raise ValueError('Board routing changed; reload the supported client before writing')
 
     def _load(self):
         cache=_json(self.root/'cache.json')
@@ -440,6 +492,7 @@ class RemoteBoard:
         if owner_visible is not True: raise ValueError('Owner-visible coordination required')
         if reply_to and thread or owner is not None and unowned: raise ValueError('Conflicting options')
         with messages._locked(self.root/'state'):
+            self._check_route()
             events=self._load()[2];records,states,_=_reduce(events);threads=messages._threads(records)
             author,task,project=(messages._text(v,n) for v,n in [(author,80),(task,160),(project,80)])
             if topic is not None: topic=messages._text(topic,160)
@@ -473,6 +526,7 @@ class RemoteBoard:
 
     def sync(self, *, publish=True):
         with messages._locked(self.root/'sync'):
+            self._check_route()
             previous_failed_head=object()
             for attempt in range(5):
                 head,remote_events=self.remote.fetch()
@@ -511,14 +565,78 @@ def configured(path):
         root=Path(value['root'])
         if not root.is_absolute(): raise ValueError('Board root must be absolute')
         _directory(root)
-        return RemoteBoard(root)
+        board = RemoteBoard(root)
+        board.routing_path = path
+        return board
     return None
 
 
-def connect(path,repository):
+def relocate(path, repository, *, prefix, source_head, remote=None):
+    """Switch the routing pointer only after exact history and outbox preservation.
+
+    The caller must first quiesce old writers and import the frozen source.
+    The old state tree and legacy log remain unchanged recovery sources.
+    """
+    path = Path(path)
+    config = _configuration(repository, prefix)
+    old = configured(path)
+    if old is None:
+        raise ValueError('No connected source board to relocate')
+    if old.repository == repository and old.prefix == prefix:
+        return old
+    if not isinstance(source_head, str) or not re.fullmatch(r'(?:[a-f0-9]{40}|[a-f0-9]{64})', source_head):
+        raise ValueError('A reviewed frozen source revision is required')
+    route = hashlib.sha256((repository+'\0'+prefix).encode()).hexdigest()[:16]
+    new_root = path.parent/'remote-routes'/(route+'-'+source_head[:12])
+    target = remote or GitRemote(new_root/('git-'+route), f'https://github.com/{repository}.git',
+                                 verify=lambda: _verify_repository(repository), prefix=prefix)
+    with messages._locked(old.root/'sync'):
+        old._check_route()
+        actual_head, source_events = old.remote.fetch()
+        if actual_head != source_head:
+            raise ValueError('Source revision changed; refresh the frozen import before relocation')
+        target_head, target_events = target.fetch()
+        if target_head is None:
+            raise ValueError('Destination has no imported board history')
+        target.validate_views(target_head)
+        source_blobs = old.remote.event_blobs(source_head)
+        target_blobs = target.event_blobs(target_head)
+        if any(target_blobs.get(mid) != blob for mid, blob in source_blobs.items()):
+            raise ValueError('Destination must preserve every source event byte')
+        with messages._locked(old.root/'state'):
+            old._check_route()
+            cache, pending, local = old._load()
+            source_ids = {event['id'] for event in source_events}
+            if any(event['id'] not in source_ids for event in cache['events']):
+                raise ValueError('Source lost accepted history; relocation refused')
+            if cache['head']:
+                accepted = old.remote.event_blobs(cache['head'])
+                if any(source_blobs.get(mid) != blob for mid, blob in accepted.items()):
+                    raise ValueError('Source rewrote accepted event bytes')
+            _union(local, source_events, target_events)
+            initialize(new_root, repository, prefix=prefix)
+            _atomic(new_root/'previous-route.json', _bytes({
+                'schema': 1, 'previous_root': str(old.root), 'source_head': source_head,
+                'source_repository': old.repository, 'source_prefix': old.prefix,
+                'target_repository': repository, 'target_prefix': prefix,
+            }), replace=False)
+            _atomic(new_root/'cache.json', _bytes({
+                'schema': 1, 'head': target_head, 'synced_at': _now(), 'events': target_events,
+            }))
+            for event in pending:
+                name = event['id']+'.json'
+                _atomic(new_root/'outbox'/name, _read(old.root/'outbox'/name), replace=False)
+            # One atomic pointer change is the cutover. Old config/cache/outbox stay intact.
+            _atomic(marker(path), _bytes({'schema': 1, 'root': str(new_root)}))
+    board = RemoteBoard(new_root, remote=target)
+    board.routing_path = path
+    return board
+
+
+def connect(path,repository,*,prefix=''):
     root=path.parent/'remote'
     if path.exists() and _read(path): raise ValueError('Existing local log; connect needs an empty store')
-    initialize(root,repository);board=RemoteBoard(root)
+    initialize(root,repository,prefix=prefix);board=RemoteBoard(root)
     with messages._locked(path,create=True):
         if path.exists() and _read(path): raise ValueError('Existing local log; connect needs an empty store')
         _atomic(path,b'',replace=False)
@@ -537,9 +655,10 @@ def main():
     check.add_argument('--git-dir',type=Path,required=True)
     check.add_argument('--head',default='HEAD')
     check.add_argument('--base',help='Previously accepted ancestor; verify every old event byte is retained')
+    check.add_argument('--prefix', default='', help='Board data directory inside the repository')
     args=parser.parse_args()
     try:
-        remote=GitRemote(args.git_dir,'',verify=lambda:None)
+        remote=GitRemote(args.git_dir,'',verify=lambda:None,prefix=args.prefix)
         print(json.dumps(remote.validate_views(args.head,base=args.base),sort_keys=True))
         return 0
     except (ValueError,OSError,TypeError,KeyError,UnicodeError,subprocess.TimeoutExpired):

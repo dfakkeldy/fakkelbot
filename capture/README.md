@@ -59,3 +59,5 @@ python3 -m unittest discover -s capture -v
 ```
 
 The tests use a fake GitHub behind the same boundary as `gh`, and create no real issues.
+
+Listings expose the latest verified annotation for the current state, separately from raw capture text. This retains waiting details and dates as well as next actions; next_action is the convenience field for state next. Remote notes_complete reports whether all comment pages were read.

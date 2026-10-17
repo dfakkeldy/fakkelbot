@@ -113,3 +113,5 @@ If a reply breaks a rule, tell fakkelbot what happened and what you expected, an
 - Jennifer Kemp and Monique Mitchelson, *The Neurodivergence Skills Workbook for Autism and ADHD*, 2024.
 - Sonny Jane Wise, *The Neurodivergent Friendly Workbook of DBT Skills*, 2022.
 - Scott E. Spradlin and Mariah Spradlin, *Dialectical Behavior Therapy Skills Workbook for Adult ADHD*, audiobook, 2026. Reviewed from a machine transcript of the audio.
+
+Waiting and later notes retain their verified clarification details, including a chosen person or date. Restart reads those details and checks whether dates still apply.

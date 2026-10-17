@@ -794,6 +794,21 @@ class StagingTest(Base):
 
 
 class NextActionTest(Base):
+    def test_waiting_and_later_lists_retain_verified_details(self):
+        for state, detail in [('waiting', 'Waiting for Sam; deadline 2026-10-23'),
+                              ('later', 'After the trip, 2026-10-25')]:
+            _, capture = self.capture('renew insurance '+state)
+            self.run_cli('classify', '--id', capture['id'], '--state', state,
+                         '--note-file', '-', stdin=detail)
+            for remote in (False, True):
+                args = ['list', '--state', state] + (['--remote'] if remote else [])
+                _, listed = self.run_cli(*args)
+                [item] = listed['captures']
+                self.assertEqual(detail, item['annotation']['text'])
+                self.assertEqual(state, item['annotation']['state'])
+                self.assertEqual('verified_comment', item['annotation']['source'])
+                self.assertIsNone(item['next_action'])
+
     def test_local_list_shows_the_verified_chosen_step(self):
         _, a = self.capture("insurance")
         _, b = self.capture("dentist")

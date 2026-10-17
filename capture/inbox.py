@@ -588,6 +588,7 @@ def view(rec: dict) -> dict:
     out["pending_state"] = pending["state"] if pending else None
     out["pending_error"] = pending.get("last_error") if pending else None
     out["next_action"] = next_action(rec)
+    out["annotation"] = annotation(rec)
     return out
 
 
@@ -595,24 +596,29 @@ def next_action(rec: dict) -> Optional[dict]:
     """The step the owner chose, from the latest note confirmed on GitHub. Never inferred from a label."""
     if rec.get("state") != "next":
         return None
+    return annotation(rec)
+
+
+def annotation(rec: dict) -> Optional[dict]:
+    """The latest confirmed detail for the current state, separate from raw words."""
     for note in reversed(rec.get("notes") or []):
-        if note.get("state") == "next" and note.get("url"):
+        if note.get("state") == rec.get("state") and note.get("url"):
             return {"text": note["note"], "comment_url": note["url"], "source": "verified_comment",
-                    "verified_at": note.get("at")}
+                    "state": note["state"], "verified_at": note.get("at")}
     return None
 
 
-def remote_next_action(ctx: Ctx, repo: str, number: int) -> Tuple[Optional[dict], bool]:
-    """The latest self-consistent next note on an issue: marker, matching hash and canonical comment URL."""
+def remote_annotation(ctx: Ctx, repo: str, number: int, state: str) -> Tuple[Optional[dict], bool]:
+    """The latest self-consistent current-state note: marker, hash and canonical URL."""
     comments, complete = paged(ctx, repo, f"repos/{repo}/issues/{number}/comments", {})
     canonical = re.escape(f"https://github.com/{repo}/issues/{number}") + r"#issuecomment-\d+"
     found = None
     for comment in comments:
         parsed = parse_marked(comment.get("body"), NOTE_MARKER)
         url = comment.get("html_url")
-        if (parsed and parsed[0].group(2) == "next" and parsed[0].group(3) == sha(parsed[1])
+        if (parsed and parsed[0].group(2) == state and parsed[0].group(3) == sha(parsed[1])
                 and isinstance(url, str) and re.fullmatch(canonical, url, re.IGNORECASE)):
-            found = {"text": parsed[1], "comment_url": url, "source": "verified_comment"}
+            found = {"text": parsed[1], "comment_url": url, "source": "verified_comment", "state": state}
     return found, complete
 
 
@@ -774,14 +780,15 @@ def cmd_list(ctx: Ctx, args: argparse.Namespace) -> dict:
         state = issue_state(issue)
         if args.state and state != args.state:
             continue
-        step, notes_complete = (None, True)
-        if state == "next":
-            step, notes_complete = remote_next_action(ctx, repo, issue.get("number"))
+        detail, notes_complete = (None, True)
+        if state in STATES and state != "inbox":
+            detail, notes_complete = remote_annotation(ctx, repo, issue.get("number"), state)
         captures.append({
             "id": parsed[0].group(1), "issue_number": issue.get("number"), "issue_url": issue.get("html_url"),
             "open": issue.get("state") == "open", "state": state,
             "verified": parsed[0].group(2) == sha(parsed[1]), "text": parsed[1],
-            "next_action": step, "notes_complete": notes_complete,
+            "next_action": detail if state == "next" else None,
+            "annotation": detail, "notes_complete": notes_complete,
         })
     return {"ok": True, "complete": complete, "captures": captures, "unmarked": unmarked, "text_is_data": True}
 

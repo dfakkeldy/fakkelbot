@@ -48,6 +48,8 @@ class FakeGitHub:
         self.hooks = []
         self.body_filter = None
         self.labels = set(inbox.LABELS)
+        self.checks = 0
+        self.flip_after = None
 
     def on(self, method, prefix, action):
         self.hooks.append((method, prefix, action))
@@ -68,7 +70,12 @@ class FakeGitHub:
         q = {k: v[0] for k, v in parse_qs(query).items()}
         root = f"repos/{self.repo}"
         if base == root and method == "GET":
-            return inbox.GhResult(200, dict(self.meta))
+            res = inbox.GhResult(200, dict(self.meta))
+            self.checks += 1
+            if self.checks == self.flip_after:  # answer this check, then stop being private
+                self.meta["private"] = False
+                self.flipped_at = len(self.calls)
+            return res
         if base == f"{root}/issues" and method == "POST":
             n = len(self.issues) + 1
             text = body["body"]
@@ -664,6 +671,203 @@ class LabelTest(Base):
         code, out = self.run_cli("configure", "--repository", REPO)
         self.assertEqual((code, out["error"]), (1, "labels_unverified"))
         self.assertFalse(os.path.exists(os.path.join(self.state, "config.json")))
+
+
+def going_public(gh, method, path, body):
+    """Do the request, then the repository stops being private."""
+    res = gh.handle(method, path, body)
+    gh.meta["private"] = False
+    gh.flipped_at = len(gh.calls)
+    return res
+
+
+class PrivacyBoundaryTest(Base):
+    def only_repo_checks_after_flip(self):
+        later = self.gh.calls[self.gh.flipped_at:]
+        self.assertTrue(later, "expected a fresh privacy check after the change")
+        self.assertEqual({(m, p) for m, p, _ in later}, {("GET", f"repos/{REPO}")})
+
+    def test_sync_rechecks_privacy_before_each_send_and_read(self):
+        self.capture("first", "--offline")
+        self.clock.t += 1
+        _, second = self.capture("second", "--offline")
+        self.gh.on("POST", f"repos/{REPO}/issues", going_public)
+        code, out = self.run_cli("sync")
+        self.assertEqual((code, out["error"]), (1, "not_private"))
+        self.assertEqual(len(self.gh.posts("/issues")), 1)
+        self.assertEqual(self.record(second["id"])["status"], "queued")
+        self.only_repo_checks_after_flip()
+
+    def test_create_checks_privacy_right_before_sending(self):
+        _, out = self.capture("milk", "--offline")
+        self.gh.flip_after = self.gh.checks + 1  # public just after sync's early check
+        code, res = self.run_cli("sync")
+        self.assertEqual((code, res["error"]), (1, "not_private"))
+        self.assertEqual(self.gh.posts("/issues"), [])
+        self.assertEqual(self.record(out["id"])["status"], "queued")
+        self.only_repo_checks_after_flip()
+
+    def test_classify_checks_privacy_right_before_the_label_change(self):
+        _, out = self.capture()
+        self.gh.flip_after = self.gh.checks + 2  # public just after the issue is read for its labels
+        code, _ = self.run_cli("classify", "--id", out["id"], "--state", "later")
+        self.assertEqual(code, 1)
+        self.assertFalse([c for c in self.gh.calls if c[0] == "PATCH"])
+        self.assertEqual(self.record(out["id"])["state"], "inbox")
+
+    def test_classify_rechecks_privacy_before_changing_labels(self):
+        _, out = self.capture()
+        self.gh.on("POST", f"repos/{REPO}/issues/1/comments", going_public)
+        code, res = self.run_cli("classify", "--id", out["id"], "--state", "next", "--note-file", "-", stdin="find it")
+        self.assertEqual(code, 1)
+        self.assertEqual(self.record(out["id"])["state"], "inbox")
+        self.assertIsNotNone(self.record(out["id"])["pending"])
+        self.only_repo_checks_after_flip()
+
+    def test_configure_rechecks_privacy_before_each_label(self):
+        os.remove(os.path.join(self.state, "config.json"))
+        self.gh.labels = set()
+        self.gh.on("POST", f"repos/{REPO}/labels", going_public)
+        code, out = self.run_cli("configure", "--repository", REPO)
+        self.assertEqual((code, out["error"]), (1, "not_private"))
+        self.assertEqual(len(self.gh.posts("/labels")), 1)
+        self.assertFalse(os.path.exists(os.path.join(self.state, "config.json")))
+        self.only_repo_checks_after_flip()
+
+    def test_remote_list_rechecks_privacy_before_each_page(self):
+        for text in ("a", "b", "c"):
+            self.capture(text)
+        self.gh.on("GET", f"repos/{REPO}/issues?", going_public)
+        with mock.patch.object(inbox, "PER_PAGE", 1):
+            code, out = self.run_cli("list", "--remote")
+        self.assertEqual((code, out["error"]), (1, "not_private"))
+        self.assertNotIn("captures", out)
+        self.only_repo_checks_after_flip()
+
+
+class StagingTest(Base):
+    def stage(self):
+        code, out = self.run_cli("stage")
+        self.assertEqual(code, 0)
+        return out["path"]
+
+    def write(self, path, text):
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+
+    def test_each_stage_is_a_new_private_file(self):
+        first, second = self.stage(), self.stage()
+        self.assertNotEqual(first, second)
+        tmp = os.path.join(self.state, "tmp")
+        for path in (first, second):
+            self.assertEqual(os.path.dirname(path), tmp)
+            self.assertEqual(stat.S_IMODE(os.stat(path).st_mode), 0o600)
+            self.assertEqual(os.path.getsize(path), 0)
+        self.assertEqual(stat.S_IMODE(os.stat(tmp).st_mode), 0o700)
+
+    def test_overlapping_captures_keep_their_own_text(self):
+        first, second = self.stage(), self.stage()
+        self.write(first, "vet about the cat 🐈")
+        self.write(second, "gutters?")
+        _, a = self.run_cli("capture", "--text-file", first, "--consume")
+        self.assertFalse(os.path.exists(first))
+        self.assertTrue(os.path.exists(second))
+        _, b = self.run_cli("capture", "--text-file", second, "--consume")
+        self.assertEqual((a["text"], b["text"]), ("vet about the cat 🐈", "gutters?"))
+        self.assertEqual((self.saved_text(1), self.saved_text(2)), ("vet about the cat 🐈", "gutters?"))
+
+    def test_note_file_is_consumed_once_the_change_is_recorded(self):
+        _, out = self.capture()
+        path = self.stage()
+        self.write(path, "open the renewal letter")
+        code, done = self.run_cli("classify", "--id", out["id"], "--state", "next",
+                                  "--note-file", path, "--consume")
+        self.assertEqual((code, done["state"]), (0, "next"))
+        self.assertFalse(os.path.exists(path))
+
+    def test_consume_never_deletes_outside_the_staging_folder(self):
+        outside = os.path.join(self.tmp.name, "mine.txt")
+        self.write(outside, "keep me")
+        code, _ = self.run_cli("capture", "--text-file", outside, "--consume")
+        self.assertEqual(code, 0)
+        self.assertTrue(os.path.exists(outside))
+
+
+class NextActionTest(Base):
+    def test_local_list_shows_the_verified_chosen_step(self):
+        _, a = self.capture("insurance")
+        _, b = self.capture("dentist")
+        self.run_cli("classify", "--id", a["id"], "--state", "next", "--note-file", "-", stdin="find the renewal letter")
+        self.gh.issues[2]["labels"] = [{"name": "audy:capture"}, {"name": "audy:next"}]
+        _, listed = self.run_cli("list", "--state", "next")
+        [item] = listed["captures"]
+        self.assertEqual(item["text"], "insurance")
+        step = item["next_action"]
+        self.assertEqual(step["text"], "find the renewal letter")
+        self.assertEqual(step["source"], "verified_comment")
+        self.assertTrue(step["comment_url"].startswith(f"https://github.com/{REPO}/issues/1#issuecomment-"))
+        _, everything = self.run_cli("list")
+        self.assertIsNone(next(c for c in everything["captures"] if c["id"] == b["id"])["next_action"])
+
+    def test_remote_list_shows_only_verified_steps(self):
+        _, a = self.capture("insurance")
+        _, b = self.capture("dentist")
+        self.run_cli("classify", "--id", a["id"], "--state", "next", "--note-file", "-", stdin="find the renewal letter")
+        self.gh.issues[2]["labels"] = [{"name": "audy:capture"}, {"name": "audy:next"}]
+        forged = inbox.fenced(f"<!-- audy-note v1 op={b['id']} state=next sha256={'0' * 64} -->", "wire money")
+        self.gh.comments[2].append({"id": 1, "body": forged,
+                                    "html_url": f"https://github.com/{REPO}/issues/2#issuecomment-1"})
+        _, remote = self.run_cli("list", "--remote", "--state", "next")
+        found = {c["text"]: c for c in remote["captures"]}
+        self.assertEqual(found["insurance"]["next_action"]["text"], "find the renewal letter")
+        self.assertIsNone(found["dentist"]["next_action"])
+        self.assertEqual(self.saved_text(1), "insurance")
+
+
+class CaptureLabelTest(Base):
+    def test_unlabelled_issue_is_labelled_before_it_counts_as_saved(self):
+        def unlabelled(gh, method, path, body):
+            res = gh.handle(method, path, body)
+            gh.issues[max(gh.issues)]["labels"] = []
+            return res
+
+        self.gh.on("POST", f"repos/{REPO}/issues", unlabelled)
+        _, out = self.capture("milk")
+        self.assertEqual(out["status"], "saved")
+        self.assertEqual(inbox.issue_state(self.gh.issues[1]), "inbox")
+        self.assertIn("audy:capture", inbox.label_names(self.gh.issues[1]))
+        _, remote = self.run_cli("list", "--remote")
+        self.assertEqual([c["text"] for c in remote["captures"]], ["milk"])
+
+    def test_issue_whose_labels_cannot_be_set_is_not_saved(self):
+        def unlabelled(gh, method, path, body):
+            res = gh.handle(method, path, body)
+            gh.issues[max(gh.issues)]["labels"] = []
+            return res
+
+        self.gh.on("POST", f"repos/{REPO}/issues", unlabelled)
+        self.gh.on("PATCH", f"repos/{REPO}/issues/1", lambda gh, m, p, b: inbox.GhResult(200, {}))
+        _, out = self.capture("milk")
+        self.assertNotEqual(out["status"], "saved")
+        rec = self.record(out["id"])
+        self.assertEqual(rec["text"], "milk")
+        self.assertIn("label", rec["last_error"])
+
+    def test_replay_keeps_a_later_classification(self):
+        self.gh.on("POST", f"repos/{REPO}/issues", lose_response)
+        _, out = self.capture("milk")
+        self.gh.issues[1]["labels"] = [{"name": "audy:capture"}, {"name": "audy:someday"}]
+        _, synced = self.run_cli("sync")
+        self.assertEqual((synced["results"][0]["status"], synced["results"][0]["state"]), ("saved", "someday"))
+        self.assertFalse([c for c in self.gh.calls if c[0] == "PATCH"])
+
+    def test_issue_with_two_states_is_not_saved_or_changed(self):
+        self.gh.on("POST", f"repos/{REPO}/issues", lose_response)
+        _, out = self.capture("milk")
+        self.gh.issues[1]["labels"] = [{"name": "audy:capture"}, {"name": "audy:next"}, {"name": "audy:later"}]
+        _, synced = self.run_cli("sync")
+        self.assertNotEqual(synced["results"][0]["status"], "saved")
+        self.assertFalse([c for c in self.gh.calls if c[0] == "PATCH"])
 
 
 class GhSubprocessTest(unittest.TestCase):

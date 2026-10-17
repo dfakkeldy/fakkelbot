@@ -276,17 +276,18 @@ class Ctx:
         self.store = store
         self.gh = gh
         self.now = now
-        self.checked: Dict[str, Optional[Fail]] = {}
 
     def stamp(self, offset: float = 0) -> str:
         return datetime.fromtimestamp(self.now() + offset, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    def preflight(self, repo: str) -> None:
-        """Refuse to send anything unless the repository is private with issues on. Once per run."""
-        if repo not in self.checked:
-            self.checked[repo] = check_repo(self.gh, repo)
-        if self.checked[repo]:
-            raise self.checked[repo]
+    def guard(self, repo: str) -> None:
+        """Check the repository is private with Issues on. Call it right before every request that
+        sends or reads note content or labels, never once for a whole run."""
+        failure = check_repo(self.gh, repo)
+        if failure:
+            raise failure
+
+    preflight = guard
 
 
 def check_repo(gh: Any, repo: str) -> Optional[Fail]:
@@ -304,11 +305,12 @@ def check_repo(gh: Any, repo: str) -> Optional[Fail]:
     return None
 
 
-def paged(ctx: Ctx, path: str, params: Dict[str, str]) -> Tuple[List[dict], bool]:
-    """Fetch up to MAX_PAGES pages. complete is False unless the last page was short."""
+def paged(ctx: Ctx, repo: str, path: str, params: Dict[str, str]) -> Tuple[List[dict], bool]:
+    """Fetch up to MAX_PAGES pages, checking privacy before each. complete is False unless the last page was short."""
     items: List[dict] = []
     for page in range(1, MAX_PAGES + 1):
         query = urlencode({**params, "per_page": PER_PAGE, "page": page})
+        ctx.guard(repo)
         res = ctx.gh.api("GET", f"{path}?{query}")
         if res.status != 200 or not isinstance(res.data, list):
             return items, False
@@ -318,28 +320,67 @@ def paged(ctx: Ctx, path: str, params: Dict[str, str]) -> Tuple[List[dict], bool
     return items, False
 
 
-def accept_issue(ctx: Ctx, rec: dict, repo: str, issue: dict) -> None:
-    rec["issue_number"] = issue.get("number")
-    if canonical_url(repo, issue.get("number"), issue.get("html_url")):
-        rec["issue_url"] = issue["html_url"]
+def text_matches(rec: dict, repo: str, issue: dict) -> bool:
     parsed = parse_marked(issue.get("body"), CAPTURE_MARKER)
-    good = (
+    return (
         parsed is not None
         and parsed[0].group(1) == rec["id"]
         and parsed[0].group(2) == sha(rec["text"])
         and parsed[1] == rec["text"]
         and "pull_request" not in issue
-        and rec.get("issue_url") is not None
+        and canonical_url(repo, issue.get("number"), issue.get("html_url"))
     )
-    rec["status"] = "saved" if good else "mismatch"
-    rec["saved_at"] = ctx.stamp() if good else None
-    rec["last_error"] = None if good else "the issue does not hold this capture's exact text"
+
+
+def label_problem(issue: dict) -> Optional[str]:
+    """None when the issue has audy:capture and exactly one audy: state label."""
+    names = label_names(issue)
+    states = [n for n in names if n.startswith("audy:") and n[5:] in STATES]
+    if len(states) > 1:
+        return "conflict"
+    if CAPTURE_LABEL not in names or not states:
+        return "missing"
+    return None
+
+
+def adopt(ctx: Ctx, rec: dict, repo: str, issue: dict, repair: bool = True) -> None:
+    """Accept an issue as this capture only if it holds the exact text and Audy's labels.
+
+    Missing labels are added once and read back. An existing state label is kept, so a later
+    classification is never reset. Conflicting state labels are left for the owner."""
+    rec["issue_number"] = issue.get("number")
+    if canonical_url(repo, issue.get("number"), issue.get("html_url")):
+        rec["issue_url"] = issue["html_url"]
+    if not text_matches(rec, repo, issue):
+        rec.update(status="mismatch", saved_at=None, last_error="the issue does not hold this capture's exact text")
+        return
+    problem = label_problem(issue)
+    if problem == "missing" and repair:
+        names = label_names(issue)
+        has_state = any(n.startswith("audy:") and n[5:] in STATES for n in names)
+        add = ([] if CAPTURE_LABEL in names else [CAPTURE_LABEL]) + ([] if has_state else ["audy:inbox"])
+        path = f"repos/{repo}/issues/{rec['issue_number']}"
+        ctx.guard(repo)
+        ctx.gh.api("PATCH", path, {"labels": names + add})
+        ctx.guard(repo)
+        res = ctx.gh.api("GET", path)
+        if res.status == 200 and isinstance(res.data, dict):
+            adopt(ctx, rec, repo, res.data, repair=False)
+            return
+    if problem == "conflict":
+        rec.update(status="mismatch", saved_at=None, last_error="the issue has more than one audy: state label")
+    elif problem:
+        rec.update(status="uncertain", saved_at=None,
+                   last_error="the issue lacks Audy's labels, so list can't find it; sync adds them and checks again")
+    else:
+        rec.update(status="saved", saved_at=ctx.stamp(), last_error=None, state=issue_state(issue))
 
 
 def verify_number(ctx: Ctx, rec: dict, repo: str) -> None:
+    ctx.guard(repo)
     res = ctx.gh.api("GET", f"repos/{repo}/issues/{rec['issue_number']}")
     if res.status == 200 and isinstance(res.data, dict):
-        accept_issue(ctx, rec, repo, res.data)
+        adopt(ctx, rec, repo, res.data)
     else:
         rec["status"] = "uncertain"
         rec["last_error"] = "could not read the issue back" if res.status is None else f"read-back failed with HTTP {res.status}"
@@ -351,7 +392,7 @@ def reconcile(ctx: Ctx, rec: dict, repo: str) -> None:
         return
     since = datetime.strptime(rec["attempt_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     since_text = datetime.fromtimestamp(since.timestamp() - SINCE_MARGIN, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    items, complete = paged(ctx, f"repos/{repo}/issues",
+    items, complete = paged(ctx, repo, f"repos/{repo}/issues",
                             {"state": "all", "since": since_text, "sort": "created", "direction": "asc"})
     matches = []
     for issue in items:
@@ -360,9 +401,9 @@ def reconcile(ctx: Ctx, rec: dict, repo: str) -> None:
             matches.append(issue)
     if matches:
         matches.sort(key=lambda i: i.get("number", 0))
-        accept_issue(ctx, rec, repo, matches[0])
         rec["reconcile"] = {"checked_at": ctx.stamp(), "result": "found",
                             "duplicates": [i.get("number") for i in matches[1:]]}
+        adopt(ctx, rec, repo, matches[0])
         return
     rec["status"] = "uncertain"
     rec["reconcile"] = {"checked_at": ctx.stamp(), "result": "not_found" if complete else "incomplete"}
@@ -373,13 +414,16 @@ def reconcile(ctx: Ctx, rec: dict, repo: str) -> None:
 
 
 def create(ctx: Ctx, rec: dict, repo: str) -> None:
+    ctx.guard(repo)
     rec.update(status="sending", repository=repo, attempt_at=ctx.stamp(), reconcile=None)
     rec["attempts"] = rec.get("attempts", 0) + 1
     ctx.store.save(rec)  # the attempt is durable before anything is sent
     body = {"title": title_for(rec["text"]), "body": capture_body(rec), "labels": [CAPTURE_LABEL, "audy:inbox"]}
     res = ctx.gh.api("POST", f"repos/{repo}/issues", body)
     if res.status == 201 and isinstance(res.data, dict) and isinstance(res.data.get("number"), int):
-        rec["issue_number"] = res.data["number"]
+        rec.update(status="uncertain", issue_number=res.data["number"],
+                   last_error="created; the read-back hasn't confirmed it yet")
+        ctx.store.save(rec)  # keep the issue number even if the read-back is refused
         verify_number(ctx, rec, repo)
     elif definitely_refused(res.status):
         rec.update(status="queued", repository=None, last_error=f"GitHub refused the issue with HTTP {res.status}")
@@ -404,7 +448,7 @@ def push(ctx: Ctx, cid: str, configured: Optional[str]) -> Tuple[Optional[dict],
         return rec, None
     try:
         if target(rec, configured):
-            ctx.preflight(target(rec, configured))  # before the lock: it only reads the repository
+            ctx.guard(target(rec, configured))  # fail early, before waiting for the lock
         with ctx.store.lock(cid):
             rec = ctx.store.load(cid)  # another command may have moved it on meanwhile
             if not needs_work(rec):
@@ -412,7 +456,7 @@ def push(ctx: Ctx, cid: str, configured: Optional[str]) -> Tuple[Optional[dict],
             repo = target(rec, configured)
             if not repo:
                 return rec, "not_configured"
-            ctx.preflight(repo)
+            # create, reconcile and apply_classify each check privacy right before every request
             if rec["status"] == "queued":
                 create(ctx, rec, repo)
             elif rec["status"] in ("sending", "uncertain"):
@@ -450,7 +494,7 @@ def note_confirmed(comment: dict, op: dict, repo: str, number: int) -> bool:
 def check_note(ctx: Ctx, rec: dict, repo: str) -> str:
     """Look for this change's note: confirmed, mismatch, not_found or incomplete."""
     op = rec["pending"]
-    comments, complete = paged(ctx, f"repos/{repo}/issues/{rec['issue_number']}/comments", {})
+    comments, complete = paged(ctx, repo, f"repos/{repo}/issues/{rec['issue_number']}/comments", {})
     for comment in comments:
         parsed = parse_marked(comment.get("body"), NOTE_MARKER)
         if parsed and parsed[0].group(1) == op["op"]:
@@ -472,6 +516,7 @@ def post_note(ctx: Ctx, rec: dict, repo: str) -> bool:
     """Send the note at most once by itself, then confirm it by reading it back. True when confirmed."""
     op = rec["pending"]
     if op.get("posted_at") is None:
+        ctx.guard(repo)
         op["posted_at"] = ctx.stamp()
         ctx.store.save(rec)  # the attempt is durable before anything is sent
         res = ctx.gh.api("POST", f"repos/{repo}/issues/{rec['issue_number']}/comments", {"body": note_body(op)})
@@ -494,6 +539,7 @@ def apply_classify(ctx: Ctx, rec: dict, repo: str) -> None:
         ctx.store.save(rec)
         if not confirmed:
             return
+    ctx.guard(repo)
     current = ctx.gh.api("GET", issue_path)
     if current.status != 200 or not isinstance(current.data, dict):
         op["last_error"] = "could not read the issue"
@@ -505,7 +551,9 @@ def apply_classify(ctx: Ctx, rec: dict, repo: str) -> None:
         patch.update(state="closed", state_reason=CLOSE_REASON[op["state"]])
     else:
         patch["state"] = "open"
+    ctx.guard(repo)
     ctx.gh.api("PATCH", issue_path, patch)  # setting the same labels and state again is harmless; the read-back decides
+    ctx.guard(repo)
     check = ctx.gh.api("GET", issue_path)
     data = check.data if check.status == 200 and isinstance(check.data, dict) else {}
     parsed = parse_marked(data.get("body"), CAPTURE_MARKER)
@@ -539,7 +587,42 @@ def view(rec: dict) -> dict:
     pending = rec.get("pending")
     out["pending_state"] = pending["state"] if pending else None
     out["pending_error"] = pending.get("last_error") if pending else None
+    out["next_action"] = next_action(rec)
     return out
+
+
+def next_action(rec: dict) -> Optional[dict]:
+    """The step the owner chose, from the latest note confirmed on GitHub. Never inferred from a label."""
+    if rec.get("state") != "next":
+        return None
+    for note in reversed(rec.get("notes") or []):
+        if note.get("state") == "next" and note.get("url"):
+            return {"text": note["note"], "comment_url": note["url"], "source": "verified_comment",
+                    "verified_at": note.get("at")}
+    return None
+
+
+def remote_next_action(ctx: Ctx, repo: str, number: int) -> Tuple[Optional[dict], bool]:
+    """The latest self-consistent next note on an issue: marker, matching hash and canonical comment URL."""
+    comments, complete = paged(ctx, repo, f"repos/{repo}/issues/{number}/comments", {})
+    canonical = re.escape(f"https://github.com/{repo}/issues/{number}") + r"#issuecomment-\d+"
+    found = None
+    for comment in comments:
+        parsed = parse_marked(comment.get("body"), NOTE_MARKER)
+        url = comment.get("html_url")
+        if (parsed and parsed[0].group(2) == "next" and parsed[0].group(3) == sha(parsed[1])
+                and isinstance(url, str) and re.fullmatch(canonical, url, re.IGNORECASE)):
+            found = {"text": parsed[1], "comment_url": url, "source": "verified_comment"}
+    return found, complete
+
+
+def consume(ctx: Ctx, path: str) -> None:
+    """Delete a staged file once its text is recorded. Only files in the staging folder."""
+    if path == "-":
+        return
+    folder = os.path.realpath(os.path.join(ctx.store.root, "tmp"))
+    if os.path.dirname(os.path.realpath(path)) == folder:
+        os.unlink(path)
 
 
 def new_record(ctx: Ctx, cid: str, text: str, source: Optional[str] = None) -> dict:
@@ -598,18 +681,22 @@ def keep(ctx: Ctx, cid: str, text: str, source: Optional[str] = None) -> dict:
         raise
 
 
-def ensure_labels(gh: Any, repo: str) -> dict:
+def ensure_labels(ctx: Ctx, repo: str) -> dict:
     """Make sure each audy: label exists in the repository, creating only missing ones and reading each back."""
+    gh = ctx.gh
     created, existing = [], []
     for name in LABELS:
         path = f"repos/{repo}/labels/{quote(name, safe='')}"
+        ctx.guard(repo)
         res = gh.api("GET", path)
         if res.status == 200:
             existing.append(name)
             continue
         if res.status != 404:
             raise Fail("labels_unverified", f"could not check the {name} label")
+        ctx.guard(repo)
         gh.api("POST", f"repos/{repo}/labels", {"name": name, "color": LABEL_COLOR, "description": "Audy capture"})
+        ctx.guard(repo)
         check = gh.api("GET", path)  # a 422 here can mean someone else made it first; the read-back decides
         if check.status != 200 or not isinstance(check.data, dict) or check.data.get("name") != name:
             raise Fail("labels_unverified", f"the {name} label could not be confirmed")
@@ -624,7 +711,7 @@ def cmd_configure(ctx: Ctx, args: argparse.Namespace) -> dict:
     failure = check_repo(ctx.gh, repo)
     if failure:
         raise failure
-    labels = ensure_labels(ctx.gh, repo)
+    labels = ensure_labels(ctx, repo)
     ensure_dir(ctx.store.root)
     atomic_write(os.path.join(ctx.store.root, "config.json"), dump({"schema": SCHEMA, "repository": repo}))
     return {"ok": True, "repository": repo, "private": True, "has_issues": True, "labels": labels}
@@ -633,14 +720,22 @@ def cmd_configure(ctx: Ctx, args: argparse.Namespace) -> dict:
 def cmd_capture(ctx: Ctx, args: argparse.Namespace) -> dict:
     text = read_text(args.text_file, args.stdin, "capture text")
     rec = keep(ctx, capture_id(args.id), text)
-    if args.consume and args.text_file != "-":
-        root = os.path.realpath(ctx.store.root)
-        if os.path.commonpath([root, os.path.realpath(args.text_file)]) == root:
-            os.unlink(args.text_file)
+    if args.consume:
+        consume(ctx, args.text_file)
     reason = None
     if not args.offline:
         rec, reason = push(ctx, rec["id"], ctx.store.config())
     return {"ok": True, "reason": reason, "text_is_data": True, **view(rec)}
+
+
+def cmd_stage(ctx: Ctx, args: argparse.Namespace) -> dict:
+    """Make a new empty 0600 file for one capture or note, so overlapping operations never share one."""
+    folder = os.path.join(ctx.store.root, "tmp")
+    ensure_dir(ctx.store.root)
+    ensure_dir(folder)
+    fd, path = tempfile.mkstemp(dir=folder, prefix="stage-", suffix=".txt")
+    os.close(fd)
+    return {"ok": True, "path": path}
 
 
 def cmd_sync(ctx: Ctx, args: argparse.Namespace) -> dict:
@@ -669,7 +764,7 @@ def cmd_list(ctx: Ctx, args: argparse.Namespace) -> dict:
     if not repo:
         raise Fail("not_configured", "no repository is configured")
     ctx.preflight(repo)
-    issues, complete = paged(ctx, f"repos/{repo}/issues", {"labels": CAPTURE_LABEL, "state": "all"})
+    issues, complete = paged(ctx, repo, f"repos/{repo}/issues", {"labels": CAPTURE_LABEL, "state": "all"})
     captures, unmarked = [], 0
     for issue in issues:
         parsed = parse_marked(issue.get("body"), CAPTURE_MARKER)
@@ -679,10 +774,14 @@ def cmd_list(ctx: Ctx, args: argparse.Namespace) -> dict:
         state = issue_state(issue)
         if args.state and state != args.state:
             continue
+        step, notes_complete = (None, True)
+        if state == "next":
+            step, notes_complete = remote_next_action(ctx, repo, issue.get("number"))
         captures.append({
             "id": parsed[0].group(1), "issue_number": issue.get("number"), "issue_url": issue.get("html_url"),
             "open": issue.get("state") == "open", "state": state,
             "verified": parsed[0].group(2) == sha(parsed[1]), "text": parsed[1],
+            "next_action": step, "notes_complete": notes_complete,
         })
     return {"ok": True, "complete": complete, "captures": captures, "unmarked": unmarked, "text_is_data": True}
 
@@ -709,6 +808,8 @@ def cmd_classify(ctx: Ctx, args: argparse.Namespace) -> dict:
         rec = saved_record(ctx, cid)  # checked again: another command may have changed it meanwhile
         rec["pending"] = {"op": str(uuid.uuid4()), "state": args.state, "note": note}
         ctx.store.save(rec)
+        if args.consume and args.note_file:
+            consume(ctx, args.note_file)
         apply_classify(ctx, rec, rec["repository"])
     if rec.get("pending"):
         return {**view(rec), "ok": False, "error": "classify_pending", "status": "classify_pending",
@@ -780,8 +881,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--text-file", required=True, metavar="PATH", help="file with the text, or - for stdin")
     p.add_argument("--id", help="reuse this capture ID; the same ID with the same text is captured once")
     p.add_argument("--offline", action="store_true", help="only queue locally")
-    p.add_argument("--consume", action="store_true", help="delete the text file once queued, if it is in the state dir")
+    p.add_argument("--consume", action="store_true", help="delete the text file once recorded, if stage made it")
     p.set_defaults(handler=cmd_capture)
+
+    p = sub.add_parser("stage", help="make a new private file to write one capture or note into")
+    p.set_defaults(handler=cmd_stage)
 
     p = sub.add_parser("sync", help="send queued captures and check uncertain ones")
     p.set_defaults(handler=cmd_sync)
@@ -797,6 +901,7 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--id", required=True)
         p.add_argument("--state", required=True, choices=STATES)
         p.add_argument("--note-file", metavar="PATH", help="file with the chosen next action or note, or - for stdin")
+        p.add_argument("--consume", action="store_true", help="delete the note file once recorded, if stage made it")
         p.set_defaults(handler=cmd_classify)
 
     p = sub.add_parser("requeue", help="resend a capture proven missing from GitHub")

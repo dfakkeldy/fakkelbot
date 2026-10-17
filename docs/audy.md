@@ -88,7 +88,7 @@ After fakkelbot creates Audy and setup has chosen your notes repository, try the
 2. `stuck: tax forms` One small first step, with no timer. Reply `no`, and it offers other routes rather than the same step again.
 3. `too much` A one-line reply, with no question and no new suggestion.
 4. `sort` One note at a time, ending with "Another, or stop here?" Pick a next step, then check the issue: your original words are unchanged, the label is `audy:next`, and your step is a comment.
-5. `restart` Today first, at most three notes, and a line about what it didn't look at. No count of missed days.
+5. `restart` Today first, at most three notes, and a line about what it didn't look at. No count of missed days. The note you sorted in step 4 shows the step you chose, not a guess.
 6. `skill` One short practice, and no rating asked. Reply "that one doesn't help". It drops it and offers once to note that in `prefs.md`.
 7. `remind me at 3` It says it can't message first and offers to word a reminder for your calendar or phone.
 8. `prefs` It shows only what you told it.

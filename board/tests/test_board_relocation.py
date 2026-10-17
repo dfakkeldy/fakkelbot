@@ -79,3 +79,25 @@ class BoardRelocationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'route|routing'):
             self.post(message='This stale writer must reload its route.')
         self.assertEqual(0,self.a.status()['queued'])
+
+    def test_old_connect_cannot_publish_retained_outbox_after_relocation(self):
+        # connect() uses this exact state-root layout; a custom fixture root misses the bug.
+        root=self.root/'remote'
+        api.initialize(root,'example/kit')
+        old_remote=api.GitRemote(root/'git',str(self.remote_path),verify=lambda:None)
+        self.a=api.RemoteBoard(root,remote=old_remote)
+        self.post();self.a.sync()
+        source_head=self.a.status()['head']
+        target=self.destination(self.a.remote.fetch()[1])
+        queued=self.post(message='Queued before the move.')
+        path=self.routing()
+        api._atomic(path,b'')  # A normal newly-connected store is empty.
+        moved=self.relocate(path,target,source_head=source_head)
+        moved.sync()
+        old_head=self.a.remote.fetch()[0]
+        with mock.patch.object(api,'GitRemote',return_value=self.a.remote):
+            with self.assertRaises(ValueError):
+                api.connect(path,'example/kit')
+        self.assertEqual(old_head,self.a.remote.fetch()[0], 'old route must not receive even one write')
+        self.assertEqual(1,self.a.status()['queued'], 'old recovery outbox must stay intact')
+        self.assertEqual(2,len(target.fetch()[1]))

@@ -590,7 +590,7 @@ def relocate(path, repository, *, prefix, source_head, remote=None):
     new_root = path.parent/'remote-routes'/(route+'-'+source_head[:12])
     target = remote or GitRemote(new_root/('git-'+route), f'https://github.com/{repository}.git',
                                  verify=lambda: _verify_repository(repository), prefix=prefix)
-    with messages._locked(old.root/'sync'):
+    with messages._locked(path), messages._locked(old.root/'sync'):
         old._check_route()
         actual_head, source_events = old.remote.fetch()
         if actual_head != source_head:
@@ -634,17 +634,24 @@ def relocate(path, repository, *, prefix, source_head, remote=None):
 
 
 def connect(path,repository,*,prefix=''):
-    root=path.parent/'remote'
-    if path.exists() and _read(path): raise ValueError('Existing local log; connect needs an empty store')
-    initialize(root,repository,prefix=prefix);board=RemoteBoard(root)
+    _configuration(repository, prefix)
     with messages._locked(path,create=True):
+        existing = configured(path)
+        if existing is not None:
+            if existing.repository != repository or existing.prefix != prefix:
+                raise ValueError('Existing board route differs; use explicit relocation')
+            existing.sync()
+            return existing
         if path.exists() and _read(path): raise ValueError('Existing local log; connect needs an empty store')
+        root=path.parent/'remote'
+        initialize(root,repository,prefix=prefix);board=RemoteBoard(root)
         _atomic(path,b'',replace=False)
         fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
         try:os.fchmod(fd,0o400);os.fsync(fd)
         finally:os.close(fd)
         board.sync()
         _atomic(marker(path),_bytes({'schema':1,'root':str(board.root)}),replace=False)
+        board.routing_path = path
     return board
 
 

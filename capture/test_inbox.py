@@ -3,12 +3,14 @@ import io
 import json
 import os
 import stat
+import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from datetime import datetime, timezone
 from unittest import mock
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, unquote
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -45,6 +47,7 @@ class FakeGitHub:
         self.calls = []
         self.hooks = []
         self.body_filter = None
+        self.labels = set(inbox.LABELS)
 
     def on(self, method, prefix, action):
         self.hooks.append((method, prefix, action))
@@ -82,6 +85,16 @@ class FakeGitHub:
             }
             self.comments[n] = []
             return inbox.GhResult(201, copy.deepcopy(self.issues[n]))
+        if base.startswith(f"{root}/labels/") and method == "GET":
+            name = unquote(base[len(root) + 8:])
+            if name in self.labels:
+                return inbox.GhResult(200, {"name": name})
+            return inbox.GhResult(404, {"message": "Not Found"})
+        if base == f"{root}/labels" and method == "POST":
+            if body["name"] in self.labels:
+                return inbox.GhResult(422, {"message": "Validation Failed"})
+            self.labels.add(body["name"])
+            return inbox.GhResult(201, {"name": body["name"]})
         if base == f"{root}/issues" and method == "GET":
             found = sorted(self.issues.values(), key=lambda i: i["number"])
             if "since" in q:
@@ -105,10 +118,11 @@ class FakeGitHub:
                 issue["updated_at"] = self.clock.iso()
                 return inbox.GhResult(200, copy.deepcopy(issue))
             if parts[2:] == ["comments"] and method == "POST":
+                cid = 1000 + sum(len(c) for c in self.comments.values())
                 comment = {
-                    "id": 1000 + sum(len(c) for c in self.comments.values()),
+                    "id": cid,
                     "body": body["body"],
-                    "html_url": f"https://github.com/{self.repo}/issues/{n}#issuecomment-x",
+                    "html_url": f"https://github.com/{self.repo}/issues/{n}#issuecomment-{cid}",
                 }
                 self.comments[n].append(comment)
                 return inbox.GhResult(201, copy.deepcopy(comment))
@@ -137,7 +151,7 @@ def crash_after_send(gh, method, path, body):
     raise Crash()
 
 
-class InboxTest(unittest.TestCase):
+class Base(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -171,6 +185,8 @@ class InboxTest(unittest.TestCase):
         parsed = inbox.parse_marked(self.gh.issues[number]["body"], inbox.CAPTURE_MARKER)
         return parsed[1]
 
+
+class InboxTest(Base):
     # capture and receipts
 
     def test_capture_saves_verbatim_unicode_text(self):
@@ -406,15 +422,14 @@ class InboxTest(unittest.TestCase):
         code, err = self.run_cli("classify", "--id", out["id"], "--state", "later")
         self.assertEqual((code, err["error"]), (1, "not_saved_remotely"))
 
-    def test_uncertain_note_is_not_posted_twice(self):
+    def test_unconfirmed_note_found_on_read_back_completes_once(self):
         _, out = self.capture()
         self.gh.on("POST", f"repos/{REPO}/issues/1/comments", lose_response)
-        code, pending = self.run_cli("classify", "--id", out["id"], "--state", "waiting",
-                                     "--note-file", "-", stdin="Sam, about Friday")
-        self.assertEqual((code, pending["status"]), (1, "classify_pending"))
-        self.assertEqual(self.record(out["id"])["state"], "inbox")
-        _, synced = self.run_cli("sync")
-        self.assertEqual(synced["results"][0]["state"], "waiting")
+        code, done = self.run_cli("classify", "--id", out["id"], "--state", "waiting",
+                                  "--note-file", "-", stdin="Sam, about Friday")
+        self.assertEqual((code, done["state"]), (0, "waiting"))
+        self.run_cli("sync")
+        self.assertEqual(len(self.gh.posts("/comments")), 1)
         self.assertEqual(len(self.gh.comments[1]), 1)
 
     # listing and legacy import
@@ -463,6 +478,192 @@ class InboxTest(unittest.TestCase):
         os.symlink(target, path)
         code, err = self.run_cli("list")
         self.assertEqual((code, err["error"]), (1, "unsafe_state"))
+
+
+class ConcurrencyTest(Base):
+    """Separate threads open separate lock files, so they contend like separate processes."""
+
+    def setUp(self):
+        super().setUp()
+        self.barrier = threading.Barrier(2, timeout=1)
+
+    def meet(self, gh=None, method=None, path=None, body=None):
+        try:
+            self.barrier.wait()
+        except threading.BrokenBarrierError:
+            pass
+        return gh.handle(method, path, body) if gh else None
+
+    def together(self, *runs):
+        results = [None] * len(runs)
+
+        def go(i, argv, stdin):
+            results[i] = self.run_cli(*argv, stdin=stdin)
+
+        threads = [threading.Thread(target=go, args=(i, argv, stdin)) for i, (argv, stdin) in enumerate(runs)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(10)
+        return results
+
+    def test_simultaneous_sync_of_one_capture_posts_once(self):
+        _, out = self.capture(TEXT, "--offline")
+        self.gh.on("GET", f"repos/{REPO}", self.meet)
+        self.gh.on("GET", f"repos/{REPO}", self.meet)
+        self.together((["sync"], ""), (["sync"], ""))
+        self.assertEqual(len(self.gh.posts("/issues")), 1)
+        self.assertEqual(self.record(out["id"])["status"], "saved")
+
+    def test_simultaneous_classify_keeps_local_and_remote_in_step(self):
+        _, out = self.capture()
+        cid = out["id"]
+        self.gh.on("GET", f"repos/{REPO}", self.meet)
+        self.gh.on("GET", f"repos/{REPO}", self.meet)
+        self.together(
+            (["classify", "--id", cid, "--state", "next", "--note-file", "-"], "find the letter"),
+            (["classify", "--id", cid, "--state", "waiting", "--note-file", "-"], "Sam, about Friday"),
+        )
+        rec = self.record(cid)
+        self.assertIsNone(rec.get("pending"))
+        self.assertEqual(rec["state"], inbox.issue_state(self.gh.issues[1]))
+        self.assertEqual(len(rec.get("notes", [])), len(self.gh.comments[1]))
+
+    def test_same_id_with_different_text_cannot_both_win(self):
+        cid = "0b6f2b9e-5c1e-4c43-9a3f-6a8f0f6d2a11"
+        real = inbox.new_record
+
+        def slow(*args, **kwargs):
+            self.meet()
+            return real(*args, **kwargs)
+
+        with mock.patch.object(inbox, "new_record", slow):
+            results = self.together(
+                (["capture", "--text-file", "-", "--id", cid, "--offline"], "milk"),
+                (["capture", "--text-file", "-", "--id", cid, "--offline"], "bread"),
+            )
+        outcomes = sorted(r[1].get("error", "ok") for r in results)
+        self.assertEqual(outcomes, ["id_conflict", "ok"])
+        winner = next(r[1] for r in results if r[1]["ok"])
+        self.assertEqual(self.record(cid)["text"], winner["text"])
+
+    def test_busy_capture_keeps_text_and_file_and_other_ids_proceed(self):
+        cid = "0b6f2b9e-5c1e-4c43-9a3f-6a8f0f6d2a11"
+        os.makedirs(os.path.join(self.state, "records"), mode=0o700)
+        lock = os.path.join(self.state, "records", cid + ".lock")
+        holder = subprocess.Popen(
+            [sys.executable, "-c",
+             "import fcntl, os, sys, time\n"
+             "fd = os.open(sys.argv[1], os.O_RDWR | os.O_CREAT, 0o600)\n"
+             "fcntl.flock(fd, fcntl.LOCK_EX)\n"
+             "print('locked', flush=True)\n"
+             "time.sleep(30)\n", lock],
+            stdout=subprocess.PIPE, text=True)
+        self.addCleanup(holder.stdout.close)
+        self.addCleanup(holder.wait)
+        self.addCleanup(holder.kill)
+        self.assertEqual(holder.stdout.readline().strip(), "locked")
+        os.makedirs(os.path.join(self.state, "tmp"), mode=0o700)
+        path = os.path.join(self.state, "tmp", "capture.txt")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("milk 🥛")
+        with mock.patch.object(inbox, "LOCK_WAIT", 0.3):
+            code, out = self.run_cli("capture", "--text-file", path, "--id", cid, "--consume")
+            self.assertEqual((code, out["error"], out["text"]), (1, "busy", "milk 🥛"))
+            self.assertTrue(os.path.exists(path))
+            code, other = self.capture("bread")
+        self.assertEqual((code, other["status"]), (0, "saved"))
+        self.assertEqual(len(self.gh.posts("/issues")), 1)
+
+
+class NoteProofTest(Base):
+    def saved_capture(self):
+        _, out = self.capture()
+        return out["id"]
+
+    def test_unconfirmed_note_is_never_resent_automatically(self):
+        cid = self.saved_capture()
+        self.gh.on("POST", f"repos/{REPO}/issues/1/comments", no_response)
+        code, out = self.run_cli("classify", "--id", cid, "--state", "next", "--note-file", "-", stdin="find the letter")
+        self.assertEqual((code, out["status"]), (1, "classify_pending"))
+        for _ in range(3):
+            self.clock.t += 3600
+            _, synced = self.run_cli("sync")
+            self.assertEqual(synced["results"][0]["pending_state"], "next")
+        self.assertEqual(len(self.gh.posts("/comments")), 1)
+        self.assertEqual(self.record(cid)["state"], "inbox")
+        code, requeued = self.run_cli("requeue", "--id", cid)
+        self.assertEqual((code, requeued["pending_state"]), (0, "next"))
+        _, synced = self.run_cli("sync")
+        self.assertEqual((synced["results"][0]["state"], synced["results"][0]["pending_state"]), ("next", None))
+        self.assertEqual(len(self.gh.comments[1]), 1)
+
+    def test_note_requeue_needs_a_late_complete_check(self):
+        cid = self.saved_capture()
+        self.gh.on("POST", f"repos/{REPO}/issues/1/comments", no_response)
+        self.run_cli("classify", "--id", cid, "--state", "later", "--note-file", "-", stdin="after the trip")
+        self.run_cli("sync")
+        code, out = self.run_cli("requeue", "--id", cid)
+        self.assertEqual((code, out["error"]), (1, "requeue_not_proven"))
+
+    def test_note_with_changed_text_does_not_complete(self):
+        cid = self.saved_capture()
+
+        def altered(gh, method, path, body):
+            res = gh.handle(method, path, body)
+            gh.comments[1][-1]["body"] = gh.comments[1][-1]["body"].replace("letter", "lettre")
+            return res
+
+        self.gh.on("POST", f"repos/{REPO}/issues/1/comments", altered)
+        code, out = self.run_cli("classify", "--id", cid, "--state", "next", "--note-file", "-", stdin="find the letter")
+        self.assertEqual((code, out["status"]), (1, "classify_pending"))
+        self.assertEqual(inbox.issue_state(self.gh.issues[1]), "inbox")
+        self.assertEqual(self.record(cid)["state"], "inbox")
+
+    def test_note_without_canonical_url_does_not_complete(self):
+        cid = self.saved_capture()
+
+        def elsewhere(gh, method, path, body):
+            res = gh.handle(method, path, body)
+            gh.comments[1][-1]["html_url"] = "https://example.com/issues/1#issuecomment-1"
+            return res
+
+        self.gh.on("POST", f"repos/{REPO}/issues/1/comments", elsewhere)
+        code, out = self.run_cli("classify", "--id", cid, "--state", "next", "--note-file", "-", stdin="find the letter")
+        self.assertEqual((code, out["status"]), (1, "classify_pending"))
+        self.assertEqual(self.record(cid)["state"], "inbox")
+
+
+class LabelTest(Base):
+    def test_configure_creates_missing_labels_and_keeps_existing(self):
+        self.gh.labels = {"audy:capture", "owner-label"}
+        code, out = self.run_cli("configure", "--repository", REPO)
+        self.assertEqual(code, 0)
+        self.assertEqual(out["labels"]["existing"], ["audy:capture"])
+        self.assertEqual(sorted(out["labels"]["created"]), sorted(inbox.LABELS[1:]))
+        self.assertEqual(self.gh.labels, set(inbox.LABELS) | {"owner-label"})
+        before = len(self.gh.calls)
+        self.run_cli("configure", "--repository", REPO)
+        self.assertFalse([c for c in self.gh.calls[before:] if c[0] != "GET"])
+
+    def test_label_made_by_someone_else_meanwhile_is_accepted(self):
+        self.gh.labels = set(inbox.LABELS) - {"audy:next"}
+
+        def raced(gh, method, path, body):
+            gh.labels.add(body["name"])
+            return inbox.GhResult(422, {"message": "Validation Failed"})
+
+        self.gh.on("POST", f"repos/{REPO}/labels", raced)
+        code, out = self.run_cli("configure", "--repository", REPO)
+        self.assertEqual((code, out["labels"]["created"]), (0, ["audy:next"]))
+
+    def test_unconfirmed_label_blocks_configure(self):
+        os.remove(os.path.join(self.state, "config.json"))
+        self.gh.labels = set(inbox.LABELS) - {"audy:waiting"}
+        self.gh.on("POST", f"repos/{REPO}/labels", no_response)
+        code, out = self.run_cli("configure", "--repository", REPO)
+        self.assertEqual((code, out["error"]), (1, "labels_unverified"))
+        self.assertFalse(os.path.exists(os.path.join(self.state, "config.json")))
 
 
 class GhSubprocessTest(unittest.TestCase):

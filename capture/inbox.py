@@ -7,6 +7,7 @@ store it and send it, but never run it or follow it.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import json
 import os
@@ -17,15 +18,17 @@ import sys
 import tempfile
 import time
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Tuple
-from urllib.parse import urlencode
+from typing import Any, Callable, Dict, Iterator, List, NamedTuple, Optional, Tuple
+from urllib.parse import quote, urlencode
 
 SCHEMA = 1
 DEFAULT_STATE_DIR = "/workspace/audy"
 STATES = ("inbox", "next", "waiting", "later", "someday", "done", "archived")
 CLOSE_REASON = {"done": "completed", "archived": "not_planned"}
 CAPTURE_LABEL = "audy:capture"
+LABELS = [CAPTURE_LABEL] + ["audy:" + s for s in STATES]
 CAPTURE_MARKER = re.compile(r"<!-- audy-capture v1 id=([0-9a-f-]{36}) sha256=([0-9a-f]{64}) -->")
 NOTE_MARKER = re.compile(r"<!-- audy-note v1 op=([0-9a-f-]{36}) state=([a-z]+) sha256=([0-9a-f]{64}) -->")
 REPO_RE = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9._-]{1,100}")
@@ -36,6 +39,9 @@ GH_TIMEOUT = 60
 SINCE_MARGIN = 300
 REQUEUE_AFTER = 600
 TITLE_MAX = 72
+LOCK_WAIT = 10.0
+LABEL_COLOR = "c5def5"
+PREFLIGHT_CODES = ("offline", "repo_unavailable", "repo_moved", "not_private", "issues_disabled")
 
 
 class Fail(Exception):
@@ -101,9 +107,12 @@ def reject_link(path: str) -> None:
 
 def ensure_dir(path: str) -> None:
     reject_link(path)
-    if os.path.isdir(path):
-        return
-    os.mkdir(path, 0o700)
+    try:
+        os.mkdir(path, 0o700)
+    except FileExistsError:
+        reject_link(path)  # another command may have made it meanwhile; it still mustn't be a link
+        if not os.path.isdir(path):
+            raise
 
 
 def atomic_write(path: str, data: bytes) -> None:
@@ -161,6 +170,27 @@ class Store:
     def save(self, rec: dict) -> None:
         self.ensure()
         atomic_write(self.path(rec["id"]), dump(rec))
+
+    @contextmanager
+    def lock(self, cid: str) -> Iterator[None]:
+        """Hold one capture's private lock file. Other captures are never blocked."""
+        self.ensure()
+        path = os.path.join(self.records, cid + ".lock")
+        reject_link(path)
+        fd = os.open(path, os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+        try:
+            deadline = time.monotonic() + LOCK_WAIT
+            while True:
+                try:
+                    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError:
+                    if time.monotonic() >= deadline:
+                        raise Fail("busy", "another Audy command is working on this note; nothing was lost, try again")
+                    time.sleep(0.05)
+            yield
+        finally:
+            os.close(fd)
 
     def all(self) -> List[dict]:
         reject_link(self.root)
@@ -359,25 +389,42 @@ def create(ctx: Ctx, rec: dict, repo: str) -> None:
     ctx.store.save(rec)
 
 
-def push(ctx: Ctx, rec: dict, configured: Optional[str]) -> Optional[str]:
-    """Move one record forward. Returns a reason when it stayed where it was."""
-    if rec["status"] in ("saved", "mismatch") and not rec.get("pending"):
-        return None
-    repo = rec.get("repository") if rec["status"] != "queued" else configured
-    if not repo:
-        return "not_configured"
+def needs_work(rec: Optional[dict]) -> bool:
+    return bool(rec) and (rec["status"] in ("queued", "sending", "uncertain") or bool(rec.get("pending")))
+
+
+def target(rec: dict, configured: Optional[str]) -> Optional[str]:
+    return configured if rec["status"] == "queued" else rec.get("repository")
+
+
+def push(ctx: Ctx, cid: str, configured: Optional[str]) -> Tuple[Optional[dict], Optional[str]]:
+    """Move one capture forward while holding its lock. Returns the record, and why it stayed if it did."""
+    rec = ctx.store.load(cid)
+    if not needs_work(rec):
+        return rec, None
     try:
-        ctx.preflight(repo)
+        if target(rec, configured):
+            ctx.preflight(target(rec, configured))  # before the lock: it only reads the repository
+        with ctx.store.lock(cid):
+            rec = ctx.store.load(cid)  # another command may have moved it on meanwhile
+            if not needs_work(rec):
+                return rec, None
+            repo = target(rec, configured)
+            if not repo:
+                return rec, "not_configured"
+            ctx.preflight(repo)
+            if rec["status"] == "queued":
+                create(ctx, rec, repo)
+            elif rec["status"] in ("sending", "uncertain"):
+                reconcile(ctx, rec, repo)
+                ctx.store.save(rec)
+            if rec["status"] == "saved" and rec.get("pending"):
+                apply_classify(ctx, rec, repo)
+            return rec, None
     except Fail as err:
-        return err.code
-    if rec["status"] == "queued":
-        create(ctx, rec, repo)
-    elif rec["status"] in ("sending", "uncertain"):
-        reconcile(ctx, rec, repo)
-        ctx.store.save(rec)
-    if rec["status"] == "saved" and rec.get("pending"):
-        apply_classify(ctx, rec, repo)
-    return None
+        if err.code not in PREFLIGHT_CODES + ("busy",):
+            raise
+        return ctx.store.load(cid) or rec, err.code
 
 
 def parse_stamp(text: str) -> float:
@@ -389,50 +436,63 @@ def definitely_refused(status: Optional[int]) -> bool:
     return status is not None and 400 <= status < 500 and status not in (408, 429)
 
 
-def find_note(comments: List[dict], op: dict) -> Tuple[Optional[dict], Optional[str]]:
+def note_confirmed(comment: dict, op: dict, repo: str, number: int) -> bool:
+    parsed = parse_marked(comment.get("body"), NOTE_MARKER)
+    url = comment.get("html_url")
+    canonical = re.escape(f"https://github.com/{repo}/issues/{number}") + r"#issuecomment-\d+"
+    return (
+        parsed is not None and parsed[0].group(1) == op["op"] and parsed[0].group(3) == sha(op["note"])
+        and parsed[1] == op["note"]
+        and isinstance(url, str) and re.fullmatch(canonical, url, re.IGNORECASE) is not None
+    )
+
+
+def check_note(ctx: Ctx, rec: dict, repo: str) -> str:
+    """Look for this change's note: confirmed, mismatch, not_found or incomplete."""
+    op = rec["pending"]
+    comments, complete = paged(ctx, f"repos/{repo}/issues/{rec['issue_number']}/comments", {})
     for comment in comments:
         parsed = parse_marked(comment.get("body"), NOTE_MARKER)
         if parsed and parsed[0].group(1) == op["op"]:
-            return comment, parsed[1]
-    return None, None
+            if note_confirmed(comment, op, repo, rec["issue_number"]):
+                op["comment_url"] = comment["html_url"]
+                return "confirmed"
+            return "mismatch"
+    return "not_found" if complete else "incomplete"
 
 
-def post_note(ctx: Ctx, rec: dict, path: str) -> bool:
-    """Make sure the note is on the issue exactly once. True when it is."""
+NOTE_ERRORS = {
+    "mismatch": "a note with this change's marker doesn't match the chosen note",
+    "not_found": "the note isn't on the issue; it is sent again only if you requeue it",
+    "incomplete": "could not read every comment, so the note isn't confirmed",
+}
+
+
+def post_note(ctx: Ctx, rec: dict, repo: str) -> bool:
+    """Send the note at most once by itself, then confirm it by reading it back. True when confirmed."""
     op = rec["pending"]
-    comments, complete = paged(ctx, path, {})
-    found, _ = find_note(comments, op)
-    if found:
-        op["comment_url"] = found.get("html_url")
-        return True
-    if not complete:
-        op["last_error"] = "could not check every comment, so the note was not posted again"
-        return False
-    if op.get("posted_at") and ctx.now() - parse_stamp(op["posted_at"]) < REQUEUE_AFTER:
-        op["last_error"] = "the note was sent but isn't on the issue yet; sync checks again later"
-        return False
-    op["posted_at"] = ctx.stamp()
-    ctx.store.save(rec)  # the attempt is durable before anything is sent
-    res = ctx.gh.api("POST", path, {"body": note_body(op)})
-    if res.status == 201 and isinstance(res.data, dict):
-        op["comment_url"] = res.data.get("html_url")
-        return True
-    if definitely_refused(res.status):
-        op["posted_at"] = None
-        op["last_error"] = f"GitHub refused the note with HTTP {res.status}"
-    else:
-        op["last_error"] = "GitHub did not confirm the note; sync checks before any resend"
-    return False
+    if op.get("posted_at") is None:
+        op["posted_at"] = ctx.stamp()
+        ctx.store.save(rec)  # the attempt is durable before anything is sent
+        res = ctx.gh.api("POST", f"repos/{repo}/issues/{rec['issue_number']}/comments", {"body": note_body(op)})
+        if definitely_refused(res.status):
+            op["posted_at"] = None
+            op["last_error"] = f"GitHub refused the note with HTTP {res.status}"
+            return False
+    result = check_note(ctx, rec, repo)
+    op["note_check"] = {"checked_at": ctx.stamp(), "result": result}
+    op["last_error"] = NOTE_ERRORS.get(result)
+    return result == "confirmed"
 
 
 def apply_classify(ctx: Ctx, rec: dict, repo: str) -> None:
-    """Add the note, then set labels and open or closed. The issue body is never changed."""
+    """Confirm the note, then set labels and open or closed. The issue body is never changed."""
     op = rec["pending"]
     issue_path = f"repos/{repo}/issues/{rec['issue_number']}"
     if op.get("note") is not None and not op.get("comment_url"):
-        posted = post_note(ctx, rec, f"{issue_path}/comments")
+        confirmed = post_note(ctx, rec, repo)
         ctx.store.save(rec)
-        if not posted:
+        if not confirmed:
             return
     current = ctx.gh.api("GET", issue_path)
     if current.status != 200 or not isinstance(current.data, dict):
@@ -445,7 +505,7 @@ def apply_classify(ctx: Ctx, rec: dict, repo: str) -> None:
         patch.update(state="closed", state_reason=CLOSE_REASON[op["state"]])
     else:
         patch["state"] = "open"
-    ctx.gh.api("PATCH", issue_path, patch)  # idempotent, so the read-back below decides
+    ctx.gh.api("PATCH", issue_path, patch)  # setting the same labels and state again is harmless; the read-back decides
     check = ctx.gh.api("GET", issue_path)
     data = check.data if check.status == 200 and isinstance(check.data, dict) else {}
     parsed = parse_marked(data.get("body"), CAPTURE_MARKER)
@@ -455,8 +515,7 @@ def apply_classify(ctx: Ctx, rec: dict, repo: str) -> None:
         and (data.get("state") == "closed") == (op["state"] in CLOSE_REASON)
     )
     if ok and op.get("note") is not None:
-        comments, _ = paged(ctx, f"{issue_path}/comments", {})
-        ok = find_note(comments, op)[1] == op["note"]
+        ok = check_note(ctx, rec, repo) == "confirmed"
     if not ok:
         op["last_error"] = "the change could not be verified; sync checks again"
         ctx.store.save(rec)
@@ -520,18 +579,42 @@ def capture_id(value: Optional[str]) -> str:
 
 
 def keep(ctx: Ctx, cid: str, text: str, source: Optional[str] = None) -> dict:
-    """Write the local record before anything else. Reusing an ID with the same text is a no-op."""
-    rec = ctx.store.load(cid)
-    if rec is not None:
-        if rec["text"] != text:
-            raise Fail("id_conflict", "that capture ID is already used for different text")
-        return rec
-    rec = new_record(ctx, cid, text, source)
+    """Write the local record, under its lock, before anything is sent. The same ID with the same text is a no-op."""
     try:
-        ctx.store.save(rec)
+        with ctx.store.lock(cid):
+            rec = ctx.store.load(cid)
+            if rec is not None:
+                if rec["text"] != text:
+                    raise Fail("id_conflict", "that capture ID is already used for different text")
+                return rec
+            rec = new_record(ctx, cid, text, source)
+            ctx.store.save(rec)
+            return rec
     except OSError:
         raise Fail("local_write_failed", "the capture could not be written locally and was not sent", text=text)
-    return rec
+    except Fail as err:
+        if err.code == "busy":
+            err.extra["text"] = text
+        raise
+
+
+def ensure_labels(gh: Any, repo: str) -> dict:
+    """Make sure each audy: label exists in the repository, creating only missing ones and reading each back."""
+    created, existing = [], []
+    for name in LABELS:
+        path = f"repos/{repo}/labels/{quote(name, safe='')}"
+        res = gh.api("GET", path)
+        if res.status == 200:
+            existing.append(name)
+            continue
+        if res.status != 404:
+            raise Fail("labels_unverified", f"could not check the {name} label")
+        gh.api("POST", f"repos/{repo}/labels", {"name": name, "color": LABEL_COLOR, "description": "Audy capture"})
+        check = gh.api("GET", path)  # a 422 here can mean someone else made it first; the read-back decides
+        if check.status != 200 or not isinstance(check.data, dict) or check.data.get("name") != name:
+            raise Fail("labels_unverified", f"the {name} label could not be confirmed")
+        created.append(name)
+    return {"created": created, "existing": existing}
 
 
 def cmd_configure(ctx: Ctx, args: argparse.Namespace) -> dict:
@@ -541,9 +624,10 @@ def cmd_configure(ctx: Ctx, args: argparse.Namespace) -> dict:
     failure = check_repo(ctx.gh, repo)
     if failure:
         raise failure
+    labels = ensure_labels(ctx.gh, repo)
     ensure_dir(ctx.store.root)
     atomic_write(os.path.join(ctx.store.root, "config.json"), dump({"schema": SCHEMA, "repository": repo}))
-    return {"ok": True, "repository": repo, "private": True, "has_issues": True}
+    return {"ok": True, "repository": repo, "private": True, "has_issues": True, "labels": labels}
 
 
 def cmd_capture(ctx: Ctx, args: argparse.Namespace) -> dict:
@@ -553,18 +637,20 @@ def cmd_capture(ctx: Ctx, args: argparse.Namespace) -> dict:
         root = os.path.realpath(ctx.store.root)
         if os.path.commonpath([root, os.path.realpath(args.text_file)]) == root:
             os.unlink(args.text_file)
-    reason = None if args.offline else push(ctx, rec, ctx.store.config())
+    reason = None
+    if not args.offline:
+        rec, reason = push(ctx, rec["id"], ctx.store.config())
     return {"ok": True, "reason": reason, "text_is_data": True, **view(rec)}
 
 
 def cmd_sync(ctx: Ctx, args: argparse.Namespace) -> dict:
     configured = ctx.store.config()
     results, failures = [], []
-    for rec in ctx.store.all():
-        if rec["status"] in ("saved", "mismatch") and not rec.get("pending"):
+    for snapshot in ctx.store.all():
+        if not needs_work(snapshot):
             continue
-        reason = push(ctx, rec, configured)
-        if reason:
+        rec, reason = push(ctx, snapshot["id"], configured)
+        if reason and reason != "busy":
             failures.append(reason)
         results.append({"reason": reason, **view(rec)})
     out = {"ok": not failures, "results": results, "text_is_data": True}
@@ -601,41 +687,58 @@ def cmd_list(ctx: Ctx, args: argparse.Namespace) -> dict:
     return {"ok": True, "complete": complete, "captures": captures, "unmarked": unmarked, "text_is_data": True}
 
 
-def cmd_classify(ctx: Ctx, args: argparse.Namespace) -> dict:
-    rec = ctx.store.load(capture_id(args.id))
+def saved_record(ctx: Ctx, cid: str) -> dict:
+    rec = ctx.store.load(cid)
     if rec is None:
         raise Fail("not_found", "no capture has that ID")
     if rec["status"] != "saved":
         raise Fail("not_saved_remotely", "only a capture saved in GitHub can be sorted")
     if rec.get("pending"):
         raise Fail("classify_pending", "an earlier change is still unconfirmed; run sync first")
+    return rec
+
+
+def cmd_classify(ctx: Ctx, args: argparse.Namespace) -> dict:
+    cid = capture_id(args.id)
+    rec = saved_record(ctx, cid)
     note = read_text(args.note_file, args.stdin, "note") if args.note_file else None
     if args.state == "next" and note is None:
         raise Fail("note_required", "a next state needs the next action the owner chose")
     ctx.preflight(rec["repository"])
-    rec["pending"] = {"op": str(uuid.uuid4()), "state": args.state, "note": note}
-    ctx.store.save(rec)
-    apply_classify(ctx, rec, rec["repository"])
+    with ctx.store.lock(cid):
+        rec = saved_record(ctx, cid)  # checked again: another command may have changed it meanwhile
+        rec["pending"] = {"op": str(uuid.uuid4()), "state": args.state, "note": note}
+        ctx.store.save(rec)
+        apply_classify(ctx, rec, rec["repository"])
     if rec.get("pending"):
         return {**view(rec), "ok": False, "error": "classify_pending", "status": "classify_pending",
                 "message": rec["pending"].get("last_error")}
     return {"ok": True, "text_is_data": True, **view(rec)}
 
 
+def proven_missing(check: Optional[dict], attempt_at: Optional[str]) -> bool:
+    """A complete check found nothing, at least REQUEUE_AFTER seconds after the attempt."""
+    return bool(check and attempt_at) and check.get("result") == "not_found" and \
+        parse_stamp(check["checked_at"]) - parse_stamp(attempt_at) >= REQUEUE_AFTER
+
+
 def cmd_requeue(ctx: Ctx, args: argparse.Namespace) -> dict:
-    rec = ctx.store.load(capture_id(args.id))
-    if rec is None:
-        raise Fail("not_found", "no capture has that ID")
-    found = rec.get("reconcile") or {}
-    proven = (
-        rec["status"] == "uncertain" and not rec.get("issue_number") and found.get("result") == "not_found"
-        and parse_stamp(found["checked_at"]) - parse_stamp(rec["attempt_at"]) >= REQUEUE_AFTER
-    )
-    if not proven:
-        raise Fail("requeue_not_proven",
-                   "only a capture a complete check found missing, 10 minutes or more after sending, can be resent")
-    rec.update(status="queued", repository=None, last_error=None)
-    ctx.store.save(rec)
+    cid = capture_id(args.id)
+    with ctx.store.lock(cid):
+        rec = ctx.store.load(cid)
+        if rec is None:
+            raise Fail("not_found", "no capture has that ID")
+        op = rec.get("pending")
+        if rec["status"] == "uncertain" and not rec.get("issue_number") \
+                and proven_missing(rec.get("reconcile"), rec.get("attempt_at")):
+            rec.update(status="queued", repository=None, last_error=None)
+        elif rec["status"] == "saved" and op and not op.get("comment_url") \
+                and proven_missing(op.get("note_check"), op.get("posted_at")):
+            op.update(posted_at=None, note_check=None, last_error=None)
+        else:
+            raise Fail("requeue_not_proven", "only a capture or note that a complete check found missing, "
+                       "10 minutes or more after sending, can be sent again")
+        ctx.store.save(rec)
     return {"ok": True, **view(rec)}
 
 
@@ -652,7 +755,11 @@ def cmd_import_legacy(ctx: Ctx, args: argparse.Namespace) -> dict:
         cid = str(uuid.uuid5(LEGACY_NAMESPACE, f"{name}\n{seen[line]}\n{line}"))
         recs.append(keep(ctx, cid, line, source=f"legacy:{name}"))
     configured = ctx.store.config()
-    reasons = [] if args.offline else [push(ctx, r, configured) for r in recs]
+    reasons = []
+    if not args.offline:
+        pushed = [push(ctx, r["id"], configured) for r in recs]
+        recs = [rec for rec, _ in pushed]
+        reasons = [reason for _, reason in pushed]
     saved = sum(1 for r in recs if r["status"] == "saved")
     return {
         "ok": True, "entries": len(recs), "saved": saved, "all_saved": saved == len(recs),

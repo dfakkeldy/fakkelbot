@@ -60,7 +60,7 @@ Each note becomes one issue, labelled `audy:capture` and `audy:inbox`. Your word
 | --- | --- |
 | Saved to GitHub | The issue exists and holds your exact words. |
 | Kept on this computer, not in GitHub yet | GitHub wasn't reachable, no repository is set up, or the repository isn't private. Audy sends it the next time it syncs. |
-| Not sure it reached GitHub | GitHub didn't confirm it. Audy checks the repository before ever sending it again, so you don't get a copy. |
+| Not sure it reached GitHub | GitHub didn't confirm it. Audy checks the repository, and never sends it again by itself. If a complete check later finds nothing, it can send it again when you ask. |
 
 ## Privacy
 

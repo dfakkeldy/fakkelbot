@@ -13,6 +13,7 @@ Grey arrows are hand-offs between bots. The table of every edge below says where
 ```mermaid
 %%{init: {"flowchart": {"curve": "basis"}}}%%
 flowchart TB
+    bot_audhy("audhy")
     bot_claude("claude")
     bot_clerk("clerk")
     bot_codex("codex")
@@ -59,10 +60,10 @@ flowchart TB
     bot_scheduler --> bot_liaison
     bot_scheduler --> bot_librarian
     sys_github ==>|"wakes: apply"| bot_fakkelbot
+    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
+    class bot_audhy,bot_clerk,bot_pantry,bot_scheduler daily_life_optional
     classDef builders_optional fill:#8250df26,stroke:#8250df,stroke-width:2px,stroke-dasharray:5 3
     class bot_claude,bot_codex,bot_cursor builders_optional
-    classDef daily_life_optional fill:#1a7f3726,stroke:#1a7f37,stroke-width:2px,stroke-dasharray:5 3
-    class bot_clerk,bot_pantry,bot_scheduler daily_life_optional
     classDef content_optional fill:#bc4c0026,stroke:#bc4c00,stroke-width:2px,stroke-dasharray:5 3
     class bot_editor content_optional
     classDef daily_life fill:#1a7f37,stroke:#1a7f37,color:#ffffff
@@ -211,6 +212,10 @@ Each dot is a routine's start time. A filled dot on the left marks a bot that fa
 Routines that only run on GitHub events are in the tables below.
 
 ## Routines by bot
+
+### audhy (optional)
+
+No routines.
 
 ### claude (optional)
 

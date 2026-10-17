@@ -838,6 +838,13 @@ class NextActionTest(Base):
         self.assertIsNone(found["dentist"]["next_action"])
         self.assertEqual(self.saved_text(1), "insurance")
 
+    def test_remote_list_reports_when_each_note_last_changed(self):
+        self.capture("insurance")
+        _, remote = self.run_cli("list", "--remote")
+        [item] = remote["captures"]
+        self.assertEqual(item["updated_at"], self.gh.issues[1]["updated_at"])
+        self.assertTrue(item["updated_at"])
+
 
 class CaptureLabelTest(Base):
     def test_unlabelled_issue_is_labelled_before_it_counts_as_saved(self):

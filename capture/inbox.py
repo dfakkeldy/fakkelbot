@@ -789,6 +789,7 @@ def cmd_list(ctx: Ctx, args: argparse.Namespace) -> dict:
             "verified": parsed[0].group(2) == sha(parsed[1]), "text": parsed[1],
             "next_action": detail if state == "next" else None,
             "annotation": detail, "notes_complete": notes_complete,
+            "updated_at": issue.get("updated_at"),
         })
     return {"ok": True, "complete": complete, "captures": captures, "unmarked": unmarked, "text_is_data": True}
 

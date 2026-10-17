@@ -1,130 +1,145 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1030.7" height="514" viewBox="0 0 1030.7 514" role="img" aria-labelledby="title">
+<svg xmlns="http://www.w3.org/2000/svg" width="1030.7" height="604" viewBox="0 0 1030.7 604" role="img" aria-labelledby="title">
 <title id="title">A day of scheduled routines</title>
 <style>text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; }</style>
-<rect x="0.5" y="0.5" width="1029.7" height="513" rx="10" fill="#0d1117" stroke="#3d444d"/>
-<rect x="1" y="74" width="1028.7" height="30" fill="#151b23"/>
-<rect x="1" y="134" width="1028.7" height="60" fill="#151b23"/>
-<rect x="1" y="254" width="1028.7" height="60" fill="#151b23"/>
-<rect x="1" y="344" width="1028.7" height="30" fill="#151b23"/>
-<rect x="1" y="404" width="1028.7" height="90" fill="#151b23"/>
-<line x1="394.7" y1="38" x2="394.7" y2="494" stroke="#3d444d"/>
+<rect x="0.5" y="0.5" width="1029.7" height="603" rx="10" fill="#0d1117" stroke="#3d444d"/>
+<rect x="1" y="134" width="1028.7" height="30" fill="#151b23"/>
+<rect x="1" y="194" width="1028.7" height="30" fill="#151b23"/>
+<rect x="1" y="284" width="1028.7" height="60" fill="#151b23"/>
+<rect x="1" y="404" width="1028.7" height="30" fill="#151b23"/>
+<rect x="1" y="464" width="1028.7" height="30" fill="#151b23"/>
+<line x1="394.7" y1="38" x2="394.7" y2="584" stroke="#3d444d"/>
 <text x="394.7" y="30" fill="#9198a1" font-size="11" text-anchor="middle">06:00</text>
-<line x1="428" y1="38" x2="428" y2="494" stroke="#1b2129"/>
-<line x1="461.4" y1="38" x2="461.4" y2="494" stroke="#1b2129"/>
-<line x1="494.7" y1="38" x2="494.7" y2="494" stroke="#3d444d"/>
+<line x1="428" y1="38" x2="428" y2="584" stroke="#1b2129"/>
+<line x1="461.4" y1="38" x2="461.4" y2="584" stroke="#1b2129"/>
+<line x1="494.7" y1="38" x2="494.7" y2="584" stroke="#3d444d"/>
 <text x="494.7" y="30" fill="#9198a1" font-size="11" text-anchor="middle">09:00</text>
-<line x1="528" y1="38" x2="528" y2="494" stroke="#1b2129"/>
-<line x1="561.4" y1="38" x2="561.4" y2="494" stroke="#1b2129"/>
-<line x1="594.7" y1="38" x2="594.7" y2="494" stroke="#3d444d"/>
+<line x1="528" y1="38" x2="528" y2="584" stroke="#1b2129"/>
+<line x1="561.4" y1="38" x2="561.4" y2="584" stroke="#1b2129"/>
+<line x1="594.7" y1="38" x2="594.7" y2="584" stroke="#3d444d"/>
 <text x="594.7" y="30" fill="#9198a1" font-size="11" text-anchor="middle">12:00</text>
-<line x1="628" y1="38" x2="628" y2="494" stroke="#1b2129"/>
-<line x1="661.4" y1="38" x2="661.4" y2="494" stroke="#1b2129"/>
-<line x1="694.7" y1="38" x2="694.7" y2="494" stroke="#3d444d"/>
+<line x1="628" y1="38" x2="628" y2="584" stroke="#1b2129"/>
+<line x1="661.4" y1="38" x2="661.4" y2="584" stroke="#1b2129"/>
+<line x1="694.7" y1="38" x2="694.7" y2="584" stroke="#3d444d"/>
 <text x="694.7" y="30" fill="#9198a1" font-size="11" text-anchor="middle">15:00</text>
-<line x1="728" y1="38" x2="728" y2="494" stroke="#1b2129"/>
-<line x1="761.4" y1="38" x2="761.4" y2="494" stroke="#1b2129"/>
-<line x1="794.7" y1="38" x2="794.7" y2="494" stroke="#3d444d"/>
+<line x1="728" y1="38" x2="728" y2="584" stroke="#1b2129"/>
+<line x1="761.4" y1="38" x2="761.4" y2="584" stroke="#1b2129"/>
+<line x1="794.7" y1="38" x2="794.7" y2="584" stroke="#3d444d"/>
 <text x="794.7" y="30" fill="#9198a1" font-size="11" text-anchor="middle">18:00</text>
-<line x1="828" y1="38" x2="828" y2="494" stroke="#1b2129"/>
-<line x1="861.4" y1="38" x2="861.4" y2="494" stroke="#1b2129"/>
-<line x1="894.7" y1="38" x2="894.7" y2="494" stroke="#3d444d"/>
+<line x1="828" y1="38" x2="828" y2="584" stroke="#1b2129"/>
+<line x1="861.4" y1="38" x2="861.4" y2="584" stroke="#1b2129"/>
+<line x1="894.7" y1="38" x2="894.7" y2="584" stroke="#3d444d"/>
 <text x="894.7" y="30" fill="#9198a1" font-size="11" text-anchor="middle">21:00</text>
-<line x1="928" y1="38" x2="928" y2="494" stroke="#1b2129"/>
-<line x1="961.4" y1="38" x2="961.4" y2="494" stroke="#1b2129"/>
-<line x1="994.7" y1="38" x2="994.7" y2="494" stroke="#3d444d"/>
+<line x1="928" y1="38" x2="928" y2="584" stroke="#1b2129"/>
+<line x1="961.4" y1="38" x2="961.4" y2="584" stroke="#1b2129"/>
+<line x1="994.7" y1="38" x2="994.7" y2="584" stroke="#3d444d"/>
 <text x="994.7" y="30" fill="#9198a1" font-size="11" text-anchor="middle">24:00</text>
-<circle cx="26" cy="59" r="5" fill="none" stroke="#f0883e" stroke-width="2"/>
-<text x="40" y="63.5" fill="#f0f6fc" font-size="13" font-weight="600">editor</text>
-<text x="91.8" y="63" fill="#9198a1" font-size="11">optional</text>
-<text x="186.9" y="63.5" fill="#f0f6fc" font-size="13">weekly-ideas</text>
-<text x="307.7" y="63" fill="#9198a1" font-size="11.5">Mon</text>
-<circle cx="461.4" cy="59" r="5.5" fill="#f0883e" stroke="#0d1117" stroke-width="2"/>
-<text x="470.4" y="63" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">08:00</text>
-<circle cx="26" cy="89" r="5" fill="#3fb950"/>
-<text x="40" y="93.5" fill="#f0f6fc" font-size="13" font-weight="600">fakkelbot</text>
-<text x="186.9" y="93.5" fill="#f0f6fc" font-size="13">weekly-sync</text>
-<text x="307.7" y="93" fill="#9198a1" font-size="11.5">Sun</text>
-<circle cx="794.7" cy="89" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="803.7" y="93" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">18:00</text>
-<circle cx="26" cy="119" r="5" fill="#3fb950"/>
-<text x="40" y="123.5" fill="#f0f6fc" font-size="13" font-weight="600">inbox</text>
-<text x="186.9" y="123.5" fill="#f0f6fc" font-size="13">inbox-sweep</text>
-<text x="307.7" y="123" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="430.8" cy="119" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="439.8" y="123" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">07:05</text>
-<circle cx="597.5" cy="119" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="606.5" y="123" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">12:05</text>
-<circle cx="764.1" cy="119" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="773.1" y="123" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">17:05</text>
-<circle cx="26" cy="149" r="5" fill="none" stroke="#4493f8" stroke-width="2"/>
-<text x="40" y="153.5" fill="#f0f6fc" font-size="13" font-weight="600">jobscout</text>
-<text x="107.4" y="153" fill="#9198a1" font-size="11">optional</text>
-<text x="186.9" y="153.5" fill="#f0f6fc" font-size="13">weekly-search</text>
+<circle cx="26" cy="59" r="5" fill="none" stroke="#3fb950" stroke-width="2"/>
+<text x="40" y="63.5" fill="#f0f6fc" font-size="13" font-weight="600">Audy</text>
+<text x="76.2" y="63" fill="#9198a1" font-size="11">optional</text>
+<text x="186.9" y="63.5" fill="#f0f6fc" font-size="13">today</text>
+<text x="307.7" y="63" fill="#9198a1" font-size="11.5">weekdays</text>
+<circle cx="444.7" cy="59" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="453.7" y="63" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">07:30</text>
+<text x="186.9" y="93.5" fill="#f0f6fc" font-size="13">weekend-today</text>
+<text x="307.7" y="93" fill="#9198a1" font-size="11.5">weekends</text>
+<circle cx="494.7" cy="89" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="503.7" y="93" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">09:00</text>
+<text x="186.9" y="123.5" fill="#f0f6fc" font-size="13">tonight</text>
+<text x="307.7" y="123" fill="#9198a1" font-size="11.5">Sun to Thu</text>
+<circle cx="894.7" cy="119" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="903.7" y="123" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">21:00</text>
+<circle cx="26" cy="149" r="5" fill="none" stroke="#f0883e" stroke-width="2"/>
+<text x="40" y="153.5" fill="#f0f6fc" font-size="13" font-weight="600">editor</text>
+<text x="91.8" y="153" fill="#9198a1" font-size="11">optional</text>
+<text x="186.9" y="153.5" fill="#f0f6fc" font-size="13">weekly-ideas</text>
 <text x="307.7" y="153" fill="#9198a1" font-size="11.5">Mon</text>
-<circle cx="405.8" cy="149" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
-<text x="414.8" y="153" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">06:20</text>
-<text x="186.9" y="183.5" fill="#f0f6fc" font-size="13">deadline-check</text>
-<text x="307.7" y="183" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="433.6" cy="179" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
-<text x="442.6" y="183" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">07:10</text>
+<circle cx="461.4" cy="149" r="5.5" fill="#f0883e" stroke="#0d1117" stroke-width="2"/>
+<text x="470.4" y="153" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">08:00</text>
+<circle cx="26" cy="179" r="5" fill="#3fb950"/>
+<text x="40" y="183.5" fill="#f0f6fc" font-size="13" font-weight="600">fakkelbot</text>
+<text x="186.9" y="183.5" fill="#f0f6fc" font-size="13">weekly-sync</text>
+<text x="307.7" y="183" fill="#9198a1" font-size="11.5">Sun</text>
+<circle cx="794.7" cy="179" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="803.7" y="183" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">18:00</text>
 <circle cx="26" cy="209" r="5" fill="#3fb950"/>
-<text x="40" y="213.5" fill="#f0f6fc" font-size="13" font-weight="600">liaison</text>
-<text x="186.9" y="213.5" fill="#f0f6fc" font-size="13">morning-brief</text>
+<text x="40" y="213.5" fill="#f0f6fc" font-size="13" font-weight="600">inbox</text>
+<text x="186.9" y="213.5" fill="#f0f6fc" font-size="13">inbox-sweep</text>
 <text x="307.7" y="213" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="444.7" cy="209" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="453.7" y="213" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">07:30</text>
-<text x="186.9" y="243.5" fill="#f0f6fc" font-size="13">board-sync</text>
-<text x="307.7" y="243" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="503" cy="239" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="512" y="243" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">09:15</text>
-<circle cx="636.4" cy="239" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="645.4" y="243" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">13:15</text>
-<circle cx="769.7" cy="239" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="778.7" y="243" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">17:15</text>
-<circle cx="903" cy="239" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="912" y="243" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">21:15</text>
-<circle cx="26" cy="269" r="5" fill="#4493f8"/>
-<text x="40" y="273.5" fill="#f0f6fc" font-size="13" font-weight="600">librarian</text>
-<text x="186.9" y="273.5" fill="#f0f6fc" font-size="13">daily-harvest</text>
+<circle cx="430.8" cy="209" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="439.8" y="213" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">07:05</text>
+<circle cx="597.5" cy="209" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="606.5" y="213" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">12:05</text>
+<circle cx="764.1" cy="209" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="773.1" y="213" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">17:05</text>
+<circle cx="26" cy="239" r="5" fill="none" stroke="#4493f8" stroke-width="2"/>
+<text x="40" y="243.5" fill="#f0f6fc" font-size="13" font-weight="600">jobscout</text>
+<text x="107.4" y="243" fill="#9198a1" font-size="11">optional</text>
+<text x="186.9" y="243.5" fill="#f0f6fc" font-size="13">weekly-search</text>
+<text x="307.7" y="243" fill="#9198a1" font-size="11.5">Mon</text>
+<circle cx="405.8" cy="239" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
+<text x="414.8" y="243" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">06:20</text>
+<text x="186.9" y="273.5" fill="#f0f6fc" font-size="13">deadline-check</text>
 <text x="307.7" y="273" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="878" cy="269" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
-<text x="887" y="273" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">20:30</text>
-<text x="186.9" y="303.5" fill="#f0f6fc" font-size="13">weekly-tidy</text>
-<text x="307.7" y="303" fill="#9198a1" font-size="11.5">Sat</text>
-<circle cx="528" cy="299" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
-<text x="537" y="303" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">10:00</text>
-<circle cx="26" cy="329" r="5" fill="none" stroke="#3fb950" stroke-width="2"/>
-<text x="40" y="333.5" fill="#f0f6fc" font-size="13" font-weight="600">pantry</text>
-<text x="91.8" y="333" fill="#9198a1" font-size="11">optional</text>
-<text x="186.9" y="333.5" fill="#f0f6fc" font-size="13">deal-check</text>
-<text x="307.7" y="333" fill="#9198a1" font-size="11.5">Mon, Thu</text>
-<circle cx="419.7" cy="329" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="428.7" y="333" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">06:45</text>
-<circle cx="26" cy="359" r="5" fill="#ab7df8"/>
-<text x="40" y="363.5" fill="#f0f6fc" font-size="13" font-weight="600">pr-watch</text>
-<text x="186.9" y="363.5" fill="#f0f6fc" font-size="13">pr-sweep</text>
-<text x="307.7" y="363" fill="#9198a1" font-size="11.5">weekdays</text>
-<circle cx="422.5" cy="359" r="5.5" fill="#ab7df8" stroke="#0d1117" stroke-width="2"/>
-<text x="431.5" y="363" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">06:50</text>
-<circle cx="26" cy="389" r="5" fill="#4493f8"/>
-<text x="40" y="393.5" fill="#f0f6fc" font-size="13" font-weight="600">researcher</text>
-<text x="186.9" y="393.5" fill="#f0f6fc" font-size="13">watch-topics</text>
-<text x="307.7" y="393" fill="#9198a1" font-size="11.5">Mon</text>
-<circle cx="416.9" cy="389" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
-<text x="425.9" y="393" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">06:40</text>
+<circle cx="433.6" cy="269" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
+<text x="442.6" y="273" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">07:10</text>
+<circle cx="26" cy="299" r="5" fill="#3fb950"/>
+<text x="40" y="303.5" fill="#f0f6fc" font-size="13" font-weight="600">liaison</text>
+<text x="186.9" y="303.5" fill="#f0f6fc" font-size="13">morning-brief</text>
+<text x="307.7" y="303" fill="#9198a1" font-size="11.5">daily</text>
+<circle cx="422.5" cy="299" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="431.5" y="303" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">06:50</text>
+<text x="186.9" y="333.5" fill="#f0f6fc" font-size="13">board-sync</text>
+<text x="307.7" y="333" fill="#9198a1" font-size="11.5">daily</text>
+<circle cx="503" cy="329" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="512" y="333" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">09:15</text>
+<circle cx="636.4" cy="329" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="645.4" y="333" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">13:15</text>
+<circle cx="769.7" cy="329" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="778.7" y="333" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">17:15</text>
+<circle cx="903" cy="329" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="912" y="333" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">21:15</text>
+<circle cx="26" cy="359" r="5" fill="#4493f8"/>
+<text x="40" y="363.5" fill="#f0f6fc" font-size="13" font-weight="600">librarian</text>
+<text x="186.9" y="363.5" fill="#f0f6fc" font-size="13">daily-harvest</text>
+<text x="307.7" y="363" fill="#9198a1" font-size="11.5">daily</text>
+<circle cx="878" cy="359" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
+<text x="887" y="363" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">20:30</text>
+<text x="186.9" y="393.5" fill="#f0f6fc" font-size="13">weekly-tidy</text>
+<text x="307.7" y="393" fill="#9198a1" font-size="11.5">Sat</text>
+<circle cx="528" cy="389" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
+<text x="537" y="393" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">10:00</text>
 <circle cx="26" cy="419" r="5" fill="none" stroke="#3fb950" stroke-width="2"/>
-<text x="40" y="423.5" fill="#f0f6fc" font-size="13" font-weight="600">scheduler</text>
-<text x="115.2" y="423" fill="#9198a1" font-size="11">optional</text>
-<text x="186.9" y="423.5" fill="#f0f6fc" font-size="13">look-ahead</text>
-<text x="307.7" y="423" fill="#9198a1" font-size="11.5">Mon to Sat</text>
-<circle cx="894.7" cy="419" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="903.7" y="423" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">21:00</text>
-<text x="186.9" y="453.5" fill="#f0f6fc" font-size="13">morning-check</text>
-<text x="307.7" y="453" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="428" cy="449" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="437" y="453" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">07:00</text>
-<text x="186.9" y="483.5" fill="#f0f6fc" font-size="13">week-ahead</text>
-<text x="307.7" y="483" fill="#9198a1" font-size="11.5">Sun</text>
-<circle cx="894.7" cy="479" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="903.7" y="483" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">21:00</text>
+<text x="40" y="423.5" fill="#f0f6fc" font-size="13" font-weight="600">pantry</text>
+<text x="91.8" y="423" fill="#9198a1" font-size="11">optional</text>
+<text x="186.9" y="423.5" fill="#f0f6fc" font-size="13">deal-check</text>
+<text x="307.7" y="423" fill="#9198a1" font-size="11.5">Mon, Thu</text>
+<circle cx="419.7" cy="419" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="428.7" y="423" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">06:45</text>
+<circle cx="26" cy="449" r="5" fill="#ab7df8"/>
+<text x="40" y="453.5" fill="#f0f6fc" font-size="13" font-weight="600">pr-watch</text>
+<text x="186.9" y="453.5" fill="#f0f6fc" font-size="13">pr-sweep</text>
+<text x="307.7" y="453" fill="#9198a1" font-size="11.5">weekdays</text>
+<circle cx="422.5" cy="449" r="5.5" fill="#ab7df8" stroke="#0d1117" stroke-width="2"/>
+<text x="431.5" y="453" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">06:50</text>
+<circle cx="26" cy="479" r="5" fill="#4493f8"/>
+<text x="40" y="483.5" fill="#f0f6fc" font-size="13" font-weight="600">researcher</text>
+<text x="186.9" y="483.5" fill="#f0f6fc" font-size="13">watch-topics</text>
+<text x="307.7" y="483" fill="#9198a1" font-size="11.5">Mon</text>
+<circle cx="416.9" cy="479" r="5.5" fill="#4493f8" stroke="#0d1117" stroke-width="2"/>
+<text x="425.9" y="483" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">06:40</text>
+<circle cx="26" cy="509" r="5" fill="none" stroke="#3fb950" stroke-width="2"/>
+<text x="40" y="513.5" fill="#f0f6fc" font-size="13" font-weight="600">scheduler</text>
+<text x="115.2" y="513" fill="#9198a1" font-size="11">optional</text>
+<text x="186.9" y="513.5" fill="#f0f6fc" font-size="13">look-ahead</text>
+<text x="307.7" y="513" fill="#9198a1" font-size="11.5">Mon to Sat</text>
+<circle cx="869.7" cy="509" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="878.7" y="513" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">20:15</text>
+<text x="186.9" y="543.5" fill="#f0f6fc" font-size="13">morning-check</text>
+<text x="307.7" y="543" fill="#9198a1" font-size="11.5">daily</text>
+<circle cx="419.7" cy="539" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="428.7" y="543" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">06:45</text>
+<text x="186.9" y="573.5" fill="#f0f6fc" font-size="13">week-ahead</text>
+<text x="307.7" y="573" fill="#9198a1" font-size="11.5">Sun</text>
+<circle cx="869.7" cy="569" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="878.7" y="573" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">20:15</text>
 </svg>

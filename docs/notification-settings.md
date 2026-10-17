@@ -4,16 +4,17 @@ Bots can change their own alerts and sidebar visibility through supported Update
 
 ## Default and situational choices
 
-Setup offers Liaison only as the recommended mode and saves the owner's choice in /workspace/setup/notifications.md. Each Settings block and Sidebar default is a recommendation, not an instruction to erase existing preferences. fakkelbot stays visible and notifying during onboarding; if liaison is not selected, fakkelbot remains the notifying contact afterward.
+Setup offers Audy only as the recommended mode when the owner chose Audy, and Liaison only otherwise, and saves the owner's choice in /workspace/setup/notifications.md. Each Settings block and Sidebar default is a recommendation, not an instruction to erase existing preferences. fakkelbot stays visible and notifying during onboarding; if neither Audy nor liaison is selected, fakkelbot remains the notifying contact afterward.
 
 | Mode | Visible bots | Notifications | When it applies |
 | --- | --- | --- | --- |
-| Liaison only | liaison | liaison on, specialists off | Recommended normal mode; reports and urgent requests go through liaison |
+| Audy only | Audy | Audy on; liaison and specialists off | Recommended when the owner has Audy; reports reach Audy through liaison's brief, and urgent items at once |
+| Liaison only | liaison | liaison on, specialists off | Recommended without Audy; reports and urgent requests go through liaison |
 | Direct work | liaison and the specialist the owner names | liaison on; the named specialist on if requested | A direct task, conversation or approval that the owner wants to follow |
 | All bots | All bots | On for the bots the owner selects | An explicit review or troubleshooting request |
 | Quiet | As the owner chooses | Off for the bots the owner selects | Only an explicit request with a clear end condition |
 
-A mode changes alerts and visibility. It does not change reporting ownership, approval authority, routines or access. Direct replies still work when the owner deliberately addresses a bot; ordinary specialist reports still go to liaison. Urgency alone does not let a hidden specialist bypass that route or enable its own alerts.
+A mode changes alerts and visibility. It does not change reporting ownership, approval authority, routines or access. Direct replies still work when the owner deliberately addresses a bot; ordinary specialist reports still go to liaison, which passes them to Audy if the owner has it. Urgency alone does not let a hidden specialist bypass that route or enable its own alerts.
 
 ## Changing a situation
 

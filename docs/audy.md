@@ -1,93 +1,66 @@
 # How Audy works
 
-[Audy](../bots/audy.md) is an optional bot for people who find starting, switching or coming back to things hard. That might be ADHD, autism, burnout or none of those, and you don't need a diagnosis. It keeps what's on your mind, gives you one small step at a time, reminds you when you ask, and lets you restart after any gap without catching up.
+[Audy](../bots/audy.md) is an optional assistant for getting things done. It captures what's on your mind, remembers your commitments, picks what matters today and says why, helps you start, and keeps what you see small while keeping the rest safe. It suits anyone who finds starting, switching or coming back to things hard, with or without an ADHD diagnosis.
 
-## What it does
+If you add Audy, it becomes the bot that talks to you, and the others work behind it:
 
-| You say | Audy |
+| Bot | Owns | What it sends Audy |
+| --- | --- | --- |
+| liaison | The back office: every other bot's reports, and the board | A morning digest at 06:50, and urgent items at once |
+| scheduler, if you have it | Your time: calendar, appointments and hard deadlines | A day note at 06:45, a look-ahead at 20:15, the week ahead on Sundays at 20:15, and leave-by times |
+
+Numbered calendar slots still arrive in scheduler's own chat, because only your "yes 2" there can write your calendar. A relayed "yes" or "apply" never counts as your approval; Audy tells you where to answer. Without Audy, liaison and scheduler talk to you directly, as before.
+
+liaison and scheduler send their notes about 40 minutes before Audy's messages, because routines can start up to half an hour late. If one hasn't arrived, Audy goes ahead without it and says so. Audy keeps what it receives in `/workspace/audy/in/` and `day.md` until a message has used it.
+
+## Your day
+
+On its first run, Audy asks when your day starts, when you work and when you do your best work. It uses those hours from then on, and offers to move its routines if they don't fit.
+
+| When | Audy |
 | --- | --- |
-| Anything you need to remember, with or without `dump:` | Saves your words exactly, as an issue in your private GitHub repository, and says "saved" once GitHub has them. If it isn't sure something was a note, it saves it and says "undo" closes it. |
-| `stuck: <thing>` | Gives one small first step. If that's wrong, say smaller, help, later or drop it. It can check back in after the time you choose. |
-| "remind me at 3 to call the vet" | Creates a reminder routine for that time. A check-in after a work session works the same way. |
-| `restart`, or "I'm back" | Starts from today with up to three notes, next steps first. No catching up. |
-| `sort` | Takes one note and helps you decide what it is: a next step, waiting on someone, later, someday, done with or not yours. It offers a reminder for anything with a time. |
-| `skill` | Offers one short practice when everything is too much. |
-| `reminders` | Lists your reminders, so you can cancel any of them. |
-| `prefs` | Shows what it keeps about how you like help. |
+| 07:30 weekdays, 09:00 weekends | Today: fixed events, one must-do and up to two more, each with a reason, decisions bots are waiting on, and how many things are parked |
+| During work | Quiet, except due-day items, leave-by reminders and urgent items |
+| Early evening | Light, time-sensitive things only |
+| 21:00, Sunday to Thursday | Tonight: the one thing worth your evening, with its first step |
+| Weekends | One big thing on Saturday, and a light Sunday |
 
-## What makes it work
+## Choosing what matters
 
-Each idea names where it comes from. A book means Audy adapts an idea its authors describe, in its own words. It doesn't mean they tested a chat bot or reviewed Audy.
+- **Ranking:** hard dates and what breaks if they're missed come first, then what unblocks other things, then what fits your time, then what you said matters. "This pays you", such as a refund, counts. Your "this matters" overrides the rest.
+- **Reasons:** every pick comes with a few words, such as "due Friday, 10 minutes".
+- **Escalating deadlines:** a hard deadline comes back from its latest sensible start, then weekly, every second day in its last week, and daily in its last three days. Each time you see what's done, what's left, the easiest next action, and an offer to do the prep.
+- **Personal targets:** anything that takes more than about an hour gets an earlier target with checkpoints.
+- **Collisions:** a new commitment that competes with a hard date this week gets flagged.
 
-- **Getting a thought out of your head is one step.** Saving never makes you organise anything, and a saved note isn't a task until you sort it. (Allen, ch. 2.)
-- **"Saved" means GitHub has your exact words.** Audy reads the issue back before it says so. Sorting adds your chosen step as a comment and never rewrites the note.
-- **A next step is something you could start now.** Making contact with the task counts, such as opening the file. If the step is still too big, it gets smaller. If the task is unclear, finding the missing fact can be the step. (Ramsay and Rostain, ch. 5; Tuckman, ch. 29 and 30.)
-- **Reminders go where the action happens.** A reminder at the right time, in your own words, does more than a long list. Audy sets the ones you ask for, offers one when a note has a time, and offers a check-in when you start something hard. (Tuckman, ch. 21.)
-- **Saying no changes the task, not the pressure.** A refused step leads to changing it, getting help, putting it off or dropping it. (Kemp and Mitchelson, ch. 5.)
-- **A stuck item gets one change to try.** When you say an item keeps coming back, Audy asks where it stopped and suggests one change. (Spradlin and Spradlin, on problem solving.)
-- **Restarting is ordinary.** No catching up, no count of missed days and no need to explain. A real deadline is still stated plainly, with the date and the choices left. (Ramsay and Rostain, ch. 18; Davis, ch. 32 and 40.)
-- **Rest doesn't have to be earned.** (Davis, ch. 24.)
-- **Your preferences, not a default.** Audy uses what you've said helps, and where, such as "one question at a time" or "music helps when writing". (Wise; Kemp and Mitchelson.)
-- **Short practices when you want one.** Noticing one detail, a slow breath, pausing before a reply, or changing what's coming in. A practical "what should I try first?" gets a first step instead. (Wise; Spradlin and Spradlin.)
+## Starting and staying on top
 
-## Reminders and check-ins
+- **Stuck:** Audy first looks for an unanswered question blocking the task and splits it off, so the rest can go ahead. Otherwise it gives a first step, or asks once whether the task is unclear, too big, missing something or not now.
+- **"Later" gets "later when?"** and becomes a reminder.
+- **Check-ins:** offered for things you've been stuck on, and dropped if you ignore them.
+- **Stale items:** after a week with no movement, Audy offers "someday" or an easy way back in, at most two at a time.
+- **Book early:** scheduler offers the earliest slots first and flags afternoon ones, because waiting for an afternoon appointment can eat the day. When something has to be later, Audy reminds you at the leave-by time.
 
-Audy turns each reminder or check-in into a Grok routine whose folder name starts with `reminder-`, and lists it in `/workspace/audy/reminders.md`. A one-time reminder marks itself done after it runs and deletes its routine if it can. If deletion isn't available, the entry keeps later runs quiet. A repeating one stays until you say stop.
+## Reminders
 
-- Grok routines can start up to half an hour late, so use a phone alarm for anything that can't be.
-- Each run uses a little of your plan's usage. Audy keeps at most 40 reminder routines at once, including any inactive ones it couldn't delete, under Grok's limit of 50 routines per bot.
-- Reminders belong to you, not to Audy's file, so weekly-sync leaves `reminder-` routines out of its comparison.
-- A reminder can only alert you if Audy is visible with notifications on. Audy is quiet by default. So while you have a reminder set, it turns on its own alert and sidebar settings, keeping your earlier ones in `notify.md`. It puts them back after the last reminder ends. If you chose a quiet mode that covers Audy, it asks once whether reminders should alert you or arrive silently in its chat. It says a reminder will alert you only once it has checked the settings took.
+Audy creates a Grok routine for each reminder or check-in, with a folder name starting `reminder-`, and lists it in `/workspace/audy/reminders.md`. One-time reminders retire themselves. Grok routines can start up to half an hour late, so use a phone alarm for anything that can't be. Audy keeps at most 40, under Grok's limit of 50 routines per bot, and weekly-sync leaves `reminder-` routines out of the bot's file.
 
-## Sharing with your other bots
+## Notes and storage
 
-Audy offers these when they fit, and remembers your answer:
+Audy's exact capture, sorting and preferences steps are in [capture/AUDY.md](../capture/AUDY.md). It reads that file when it needs it, which keeps its instructions short. The [capture tool](../capture/README.md) checks that your repository is still private before every request.
 
-- **Morning brief.** When you choose a next step for a later day, Audy sends it to liaison for your morning brief.
-- **Calendar.** When you mention a hard deadline or an appointment, Audy can pass it to scheduler, which adds it to its list or suggests a slot.
-
-## Where things are kept
-
-Setup asks which private repository should hold your notes and writes it to `/workspace/audy/config.json`. A fresh install uses your `grok-bot-setup` repository, alongside your knowledge base and board. Audy's [capture tool](../capture/README.md) checks the repository is still private before every request.
-
-- **Notes** are issues labelled `audy:capture` and `audy:inbox`, with your words in a code block, so an `@name` in a note notifies no one. Sorting changes the `audy:` label, adds your step as a comment, and closes the issue for done or not yours.
-- **Preferences** are one issue titled "Audy preferences", labelled `audy:prefs`, with a working copy in `prefs.md`. Audy says a change is saved only after the issue reads back the same. Until then it keeps the change in `prefs.pending` and tries again, so a list you cleared stays cleared even if GitHub was unreachable.
-- **Reminders** are routines on Audy, listed in `reminders.md`.
-
-| What Audy says | What it means |
-| --- | --- |
-| Saved | The issue exists and holds your exact words. |
-| Kept on this computer, not in GitHub yet | GitHub wasn't reachable, no repository is set up, or the repository isn't private. Audy sends it the next time it syncs. |
-| Not sure it reached GitHub | GitHub didn't confirm it. Audy checks before retrying; it doesn't blindly send another copy. |
-
-Ask "what do you keep" to see where everything is. Audy can close a note but not delete it. You can delete an issue yourself in GitHub.
+- **Notes** are issues labelled `audy:capture` in your private repo. "Saved" means the issue holds your exact words. "Undo" closes a note; nothing is deleted.
+- **Preferences** are one "Audy preferences" issue, with a working copy in `prefs.md`.
 
 To share Audy as your own template, make the template from a fresh bot, as [bots/README.md](../bots/README.md#share-a-bot-as-your-own-template) says, because a bot you've used may hold your notes in its memory.
 
-## Earlier notes
-
-If you used Audy before notes moved to GitHub, your notes are in `/workspace/audhy/inbox.md` and `items.md`. When you restart or ask about your notes, Audy offers to copy them to GitHub, each line as its own note. Copying twice doesn't make duplicates, and Audy empties an old file only after every line is saved and you say so.
-
 ## Try it
 
-After fakkelbot creates Audy and setup has chosen your notes repository, try these in its chat.
-
-1. `vet about the cat's meds, what Sam said about Friday, gutters?` One line saying it's saved, as one note. The first time, three short lines about what it does follow. Check the new issue has your words exactly.
-2. `undo` It closes that note.
-3. `stuck: tax forms` One small first step, and maybe an offer to check back. Reply `no`, and it offers other routes rather than the same step again.
-4. `remind me in 10 minutes to stretch` It confirms the time. The reminder arrives, possibly a little late, and is marked done afterwards. Its routine is deleted if Audy can delete it; otherwise later runs stay quiet.
-5. `sort` One note at a time. Pick a next step, then check the issue: your words are unchanged, the label is `audy:next`, and your step is a comment.
-6. `restart` Today first, at most three notes, with the step you chose in step 5.
-7. `one question at a time, please` Then `prefs`. It shows the line, and the "Audy preferences" issue has it too.
-8. `too much` A one-line reply, with no question.
-
-If a reply misses, tell fakkelbot what happened and what you expected, and it'll change Audy's file with you.
-
-## Ideas for later
-
-- Read what's fixed today from scheduler, so "where am I at" can name the next appointment.
-- Take voice notes for captures, once someone has checked that Grok Bot handles them well.
-- Offer to remove a note's local copy once GitHub has it.
+1. Send a task with a date, without `dump:`. It's saved, and it says the date back.
+2. "remind me in 10 minutes to stretch". It confirms the time, the reminder arrives, and the routine is gone afterwards.
+3. "I'm stuck on the report". You get a first step, or one question.
+4. "what should I do today?". You get one must-do and up to two more, each with a reason.
+5. "undo" right after a capture closes that note.
 
 ## Sources
 
@@ -97,4 +70,5 @@ If a reply misses, tell fakkelbot what happened and what you expected, and it'll
 - KC Davis, *How to Keep House While Drowning*, 2022.
 - Jennifer Kemp and Monique Mitchelson, *The Neurodivergence Skills Workbook for Autism and ADHD*, 2024.
 - Sonny Jane Wise, *The Neurodivergent Friendly Workbook of DBT Skills*, 2022.
-- Scott E. Spradlin and Mariah Spradlin, *Dialectical Behavior Therapy Skills Workbook for Adult ADHD*, audiobook, 2026. Reviewed from a machine transcript of the audio.
+- Tina Mathams, *ADHD Money*.
+- Scott E. Spradlin and Mariah Spradlin, *Dialectical Behavior Therapy Skills Workbook for Adult ADHD*, audiobook, 2026.

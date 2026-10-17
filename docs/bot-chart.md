@@ -30,7 +30,8 @@ flowchart TB
     bot_scheduler("scheduler")
     fan_each_affected_bot(["each affected bot"])
     sys_github["GitHub"]
-    bot_audy --> bot_liaison
+    bot_audy --> fan_each_affected_bot
+    bot_audy --> bot_fakkelbot
     bot_audy --> bot_scheduler
     bot_claude --> bot_liaison
     bot_claude --> bot_librarian
@@ -50,6 +51,7 @@ flowchart TB
     bot_inbox --> bot_scheduler
     bot_jobscout --> bot_liaison
     bot_jobscout --> bot_librarian
+    bot_liaison --> bot_audy
     bot_liaison --> fan_each_affected_bot
     bot_liaison --> bot_librarian
     bot_librarian --> bot_liaison
@@ -59,6 +61,7 @@ flowchart TB
     bot_pr_watch --> bot_librarian
     bot_researcher --> bot_liaison
     bot_researcher --> bot_librarian
+    bot_scheduler --> bot_audy
     bot_scheduler --> bot_liaison
     bot_scheduler --> bot_librarian
     sys_github ==>|"wakes: apply"| bot_fakkelbot
@@ -80,8 +83,8 @@ flowchart TB
     class sys_github system
     classDef fan_out fill:transparent,stroke:#8c959f,stroke-dasharray:4 3
     class fan_each_affected_bot fan_out
-    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30 stroke:#8c959f,stroke-width:1.5px
-    linkStyle 31 stroke:#d4a72c,stroke-width:3px
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33 stroke:#8c959f,stroke-width:1.5px
+    linkStyle 34 stroke:#d4a72c,stroke-width:3px
 ```
 
 ### What each bot uses
@@ -153,7 +156,8 @@ flowchart TB
 
 | From | To | Kind | Where |
 |---|---|---|---|
-| Audy | liaison | hands off to | instructions |
+| Audy | each affected bot | hands off to | instructions |
+| Audy | fakkelbot | hands off to | instructions |
 | Audy | scheduler | hands off to | instructions |
 | claude | liaison | hands off to | instructions |
 | claude | librarian | hands off to | instructions |
@@ -173,6 +177,7 @@ flowchart TB
 | inbox | scheduler | hands off to | instructions, inbox-sweep |
 | jobscout | liaison | hands off to | instructions |
 | jobscout | librarian | hands off to | instructions |
+| liaison | Audy | hands off to | instructions, morning-brief |
 | liaison | each affected bot | hands off to | board-sync |
 | liaison | librarian | hands off to | instructions |
 | librarian | liaison | hands off to | instructions |
@@ -182,6 +187,7 @@ flowchart TB
 | pr-watch | librarian | hands off to | instructions |
 | researcher | liaison | hands off to | instructions |
 | researcher | librarian | hands off to | instructions, watch-topics |
+| scheduler | Audy | hands off to | instructions, morning-check |
 | scheduler | liaison | hands off to | instructions |
 | scheduler | librarian | hands off to | instructions |
 | GitHub | fakkelbot | wakes | apply |
@@ -222,7 +228,11 @@ Routines that only run on GitHub events are in the tables below.
 
 ### Audy (optional)
 
-No routines.
+| Routine | Schedule | Trigger | Enabled |
+|---|---|---|---|
+| today | weekdays at 07:30 | none | yes |
+| weekend-today | weekends at 09:00 | none | yes |
+| tonight | Sun to Thu at 21:00 | none | yes |
 
 ### claude (optional)
 
@@ -270,7 +280,7 @@ No routines.
 
 | Routine | Schedule | Trigger | Enabled |
 |---|---|---|---|
-| morning-brief | daily at 07:30 | none | yes |
+| morning-brief | daily at 06:50 | none | yes |
 | board-sync | daily at 09:15, 13:15, 17:15, 21:15 | none | yes |
 
 ### librarian
@@ -302,6 +312,6 @@ No routines.
 
 | Routine | Schedule | Trigger | Enabled |
 |---|---|---|---|
-| look-ahead | Mon to Sat at 21:00 | none | yes |
-| morning-check | daily at 07:00 | none | yes |
-| week-ahead | Sundays at 21:00 | none | yes |
+| look-ahead | Mon to Sat at 20:15 | none | yes |
+| morning-check | daily at 06:45 | none | yes |
+| week-ahead | Sundays at 20:15 | none | yes |

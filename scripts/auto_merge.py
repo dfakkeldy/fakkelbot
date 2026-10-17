@@ -158,6 +158,17 @@ def term_count(text: str, pattern: str) -> int:
     return count
 
 
+def settings_block(text: str) -> str:
+    """The text of a bot file's Settings section, up to the next ## heading."""
+    match = re.search(r"\n## Settings[^\n]*\n(.*?)(?=\n## |\Z)", text, re.S)
+    return match.group(1).strip() if match else ""
+
+
+def header_line(text: str, key: str) -> str:
+    match = re.search(r"^- \*\*" + re.escape(key) + r":\*\*(.*)$", text, re.M)
+    return match.group(1).strip() if match else ""
+
+
 def routines(text: str) -> Dict[str, Routine]:
     found: Dict[str, Routine] = {}
     section = text.split("\n## Routines", 1)
@@ -193,6 +204,10 @@ def bot_reasons(change: FileChange) -> List[str]:
     reasons = []
     if changed_lines(old, new) > MAX_BOT_LINES:
         reasons.append(f"{name} changes more than {MAX_BOT_LINES} lines")
+    if settings_block(old) != settings_block(new):
+        reasons.append(f"{name} changes its notification settings")
+    if header_line(old, "Sidebar default") != header_line(new, "Sidebar default"):
+        reasons.append(f"{name} changes its sidebar default")
     before, after = routines(old), routines(new)
     for folder, routine in after.items():
         earlier = before.get(folder)

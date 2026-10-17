@@ -280,7 +280,7 @@ No routines.
 
 | Routine | Schedule | Trigger | Enabled |
 |---|---|---|---|
-| morning-brief | daily at 07:20 | none | yes |
+| morning-brief | daily at 06:50 | none | yes |
 | board-sync | daily at 09:15, 13:15, 17:15, 21:15 | none | yes |
 
 ### librarian
@@ -312,6 +312,6 @@ No routines.
 
 | Routine | Schedule | Trigger | Enabled |
 |---|---|---|---|
-| look-ahead | Mon to Sat at 20:45 | none | yes |
-| morning-check | daily at 07:00 | none | yes |
-| week-ahead | Sundays at 20:45 | none | yes |
+| look-ahead | Mon to Sat at 20:15 | none | yes |
+| morning-check | daily at 06:45 | none | yes |
+| week-ahead | Sundays at 20:15 | none | yes |

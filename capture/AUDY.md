@@ -14,7 +14,7 @@ If the tool is missing or fails to run, say the note isn't saved and give the ow
 
 Run `stage`, write their words exactly as written to the path it printed, and run `capture --text-file <that path> --consume`. Reply in one line, from the status the tool printed:
 
-- **saved:** "Saved." Add the issue link only if they ask.
+- **saved:** "Saved." If the note has a person or a date, add it, as Audy's Keep says. Add the issue link only if they ask.
 - **queued:** "Kept on this computer, not in GitHub yet." If the reason is `not_configured`, add that no repository is set up for notes. If it's `not_private`, add that the repository isn't private, so nothing was sent.
 - **uncertain:** "Not sure it reached GitHub. I'll check before sending it again."
 - **mismatch, or an error:** say it isn't saved as written, and give their text back in one block they can copy.

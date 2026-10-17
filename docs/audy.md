@@ -6,10 +6,12 @@ If you add Audy, it becomes the bot that talks to you, and the others work behin
 
 | Bot | Owns | What it sends Audy |
 | --- | --- | --- |
-| liaison | The back office: every other bot's reports, and the board | A morning digest at 07:20, and urgent items at once |
-| scheduler, if you have it | Your time: calendar, appointments and hard deadlines | A day note at 07:00, a look-ahead at 20:45, the week ahead on Sundays, and leave-by times |
+| liaison | The back office: every other bot's reports, and the board | A morning digest at 06:50, and urgent items at once |
+| scheduler, if you have it | Your time: calendar, appointments and hard deadlines | A day note at 06:45, a look-ahead at 20:15, the week ahead on Sundays at 20:15, and leave-by times |
 
-Numbered calendar slots still arrive in scheduler's own chat, because only your "yes 2" there can write your calendar. Without Audy, liaison and scheduler talk to you directly, as before.
+Numbered calendar slots still arrive in scheduler's own chat, because only your "yes 2" there can write your calendar. A relayed "yes" or "apply" never counts as your approval; Audy tells you where to answer. Without Audy, liaison and scheduler talk to you directly, as before.
+
+liaison and scheduler send their notes about 40 minutes before Audy's messages, because routines can start up to half an hour late. If one hasn't arrived, Audy goes ahead without it and says so. Audy keeps what it receives in `/workspace/audy/in/` and `day.md` until a message has used it.
 
 ## Your day
 

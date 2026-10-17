@@ -86,8 +86,8 @@
 <text x="40" y="303.5" fill="#f0f6fc" font-size="13" font-weight="600">liaison</text>
 <text x="186.9" y="303.5" fill="#f0f6fc" font-size="13">morning-brief</text>
 <text x="307.7" y="303" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="439.1" cy="299" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="448.1" y="303" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">07:20</text>
+<circle cx="422.5" cy="299" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="431.5" y="303" fill="#9198a1" font-size="11" stroke="#151b23" stroke-width="4" paint-order="stroke">06:50</text>
 <text x="186.9" y="333.5" fill="#f0f6fc" font-size="13">board-sync</text>
 <text x="307.7" y="333" fill="#9198a1" font-size="11.5">daily</text>
 <circle cx="503" cy="329" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
@@ -132,14 +132,14 @@
 <text x="115.2" y="513" fill="#9198a1" font-size="11">optional</text>
 <text x="186.9" y="513.5" fill="#f0f6fc" font-size="13">look-ahead</text>
 <text x="307.7" y="513" fill="#9198a1" font-size="11.5">Mon to Sat</text>
-<circle cx="886.4" cy="509" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="895.4" y="513" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">20:45</text>
+<circle cx="869.7" cy="509" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="878.7" y="513" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">20:15</text>
 <text x="186.9" y="543.5" fill="#f0f6fc" font-size="13">morning-check</text>
 <text x="307.7" y="543" fill="#9198a1" font-size="11.5">daily</text>
-<circle cx="428" cy="539" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="437" y="543" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">07:00</text>
+<circle cx="419.7" cy="539" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="428.7" y="543" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">06:45</text>
 <text x="186.9" y="573.5" fill="#f0f6fc" font-size="13">week-ahead</text>
 <text x="307.7" y="573" fill="#9198a1" font-size="11.5">Sun</text>
-<circle cx="886.4" cy="569" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
-<text x="895.4" y="573" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">20:45</text>
+<circle cx="869.7" cy="569" r="5.5" fill="#3fb950" stroke="#0d1117" stroke-width="2"/>
+<text x="878.7" y="573" fill="#9198a1" font-size="11" stroke="#0d1117" stroke-width="4" paint-order="stroke">20:15</text>
 </svg>

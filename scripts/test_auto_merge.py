@@ -83,6 +83,20 @@ class BotTiers(unittest.TestCase):
         result, reasons = tier(FileChange("bots/new.md", "renamed", "bots/old.md", bot_file(), bot_file()))
         self.assertEqual((result, reasons), (am.HIGH, ["bots/old.md is renamed to bots/new.md"]))
 
+    def test_changing_notification_settings_is_high(self):
+        old = bot_file() + "## Settings (recommended defaults)\n\n```json\n{\n  \"notifyOnAgentUpdates\": false\n}\n```\n"
+        new = old.replace("false", "true")
+        result, reasons = tier(bot_change(old, new))
+        self.assertEqual(result, am.HIGH)
+        self.assertIn("bots/solo.md changes its notification settings", reasons)
+
+    def test_changing_the_sidebar_default_is_high(self):
+        old = bot_file().replace("- **Default:** yes", "- **Default:** yes\n- **Sidebar default:** visible")
+        new = old.replace("- **Sidebar default:** visible", "- **Sidebar default:** hidden")
+        result, reasons = tier(bot_change(old, new))
+        self.assertEqual(result, am.HIGH)
+        self.assertIn("bots/solo.md changes its sidebar default", reasons)
+
     def test_unreadable_bot_file_is_high(self):
         result, reasons = tier(bot_change(None, bot_file()))
         self.assertEqual(result, am.HIGH)
